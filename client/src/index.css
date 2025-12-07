@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #121212;
+  color: #e5e5e5;
+  font-family: 'Inter', sans-serif;
+}
+
+.input-field {
+  @apply w-full bg-dark-800 border border-gray-700 p-3 rounded-lg text-white focus:outline-none focus:border-accent-500 transition-all shadow-lg;
+}
+
+.btn-primary {
+  @apply bg-accent-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition shadow-glow;
+}
