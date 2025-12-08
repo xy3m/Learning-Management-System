@@ -19,7 +19,7 @@ router.put('/approve/:courseId', async (req, res) => {
     if (!course) return res.status(404).json({ message: "Course not found" });
     course.status = 'approved';
     await course.save();
-    res.json({ message: "Course Content Approved! Now visible to Learners." });
+    res.json({ message: "Content Approved! Visible to Learners." });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -28,27 +28,27 @@ router.get('/transactions', async (req, res) => {
   try {
     const txs = await Transaction.find()
         .populate('learnerId', 'name')
-        .populate('courseId', 'title');
+        .populate('courseId', 'title')
+        .sort({ createdAt: -1 });
     res.json(txs);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 4. ADMIN ACTION on Transaction (Approve or Decline Purchase)
+// 4. ADMIN ACTION on Transaction
 router.post('/transaction-action', async (req, res) => {
-    const { transactionId, action } = req.body; // action: 'approve' or 'decline'
+    const { transactionId, action } = req.body; 
 
     try {
         const tx = await Transaction.findById(transactionId);
         if (!tx) return res.status(404).json({ message: "Transaction not found" });
 
         if (action === 'approve') {
-            // Forward to Instructor for final approval
             tx.status = 'pending_instructor';
+            tx.adminApprovedAt = new Date(); // <--- SAVING THE DATE HERE
             await tx.save();
             return res.json({ message: "Approved! Forwarded to Instructor." });
         } 
         else if (action === 'decline') {
-            // REFUND LOGIC: Admin -> Learner
             const learner = await User.findById(tx.learnerId);
             const admin = await User.findOne({ role: 'lms-admin' });
             
@@ -61,7 +61,7 @@ router.post('/transaction-action', async (req, res) => {
             await adminBank.save();
             await learnerBank.save();
 
-            tx.status = 'declined';
+            tx.status = 'declined_admin';
             await tx.save();
             return res.json({ message: "Transaction Declined. Money Refunded." });
         }

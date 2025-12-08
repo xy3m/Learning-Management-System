@@ -7,11 +7,11 @@ const InstructorDashboard = () => {
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [courses, setCourses] = useState([]);
-  const [transactions, setTransactions] = useState([]); // Renamed from approvals
+  const [transactions, setTransactions] = useState([]); 
   const user = JSON.parse(sessionStorage.getItem('user'));
 
   // --- STATE ---
-  const [activeTab, setActiveTab] = useState('courses'); // 'courses' or 'history'
+  const [activeTab, setActiveTab] = useState('courses'); 
   const [step, setStep] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState(null);
@@ -41,7 +41,6 @@ const InstructorDashboard = () => {
     } catch (err) { console.error("Courses error", err); }
   };
 
-  // Fetch Transaction History
   const fetchHistory = async () => {
     try {
         const res = await axios.get(`http://localhost:5000/api/instructor/my-history/${user.id}`);
@@ -49,17 +48,16 @@ const InstructorDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
-  // INSTRUCTOR ACTION: Accept/Reject Payout
   const handleTxAction = async (id, action) => {
     try {
         const res = await axios.post('http://localhost:5000/api/instructor/transaction-action', { transactionId: id, action });
         alert(res.data.message);
-        fetchHistory(); // Refresh history
+        fetchHistory(); 
         fetchBalance(); 
     } catch(err) { alert("Action Failed"); }
   };
 
-  // ... (Keep existing handleDelete, handleEdit, handleStep1Submit, handleFinalSubmit, cancelEdit) ...
+  // ... (Keep existing Course Handlers: handleDelete, handleEdit, handleStep1Submit, handleFinalSubmit, cancelEdit) ...
   const handleDelete = async (courseId) => {
     if(!window.confirm("Are you sure?")) return;
     try {
@@ -130,7 +128,7 @@ const InstructorDashboard = () => {
         </button>
       </div>
 
-      {/* --- TAB 1: COURSES (Existing Wizard) --- */}
+      {/* --- TAB 1: COURSES --- */}
       {activeTab === 'courses' && (
         <>
             {step === 1 && (
@@ -186,7 +184,7 @@ const InstructorDashboard = () => {
         <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
             <h2 className="text-xl font-bold mb-4 text-white">Course Orders & Payouts</h2>
             
-            {transactions.length === 0 ? <p className="text-gray-500">No transaction history found.</p> : (
+            {transactions.length === 0 ? <p className="text-gray-500">No active transactions found.</p> : (
                 <div className="space-y-3">
                     {transactions.map(tx => (
                         <div key={tx._id} className="flex justify-between items-center p-4 bg-dark-900 border border-gray-800 rounded-lg hover:border-gray-600 transition">
@@ -194,14 +192,15 @@ const InstructorDashboard = () => {
                             {/* LEFT: Order Info */}
                             <div>
                                 <h3 className="text-white font-bold text-lg">{tx.courseId?.title || "Course Unavailable"}</h3>
-                                <div className="text-sm text-gray-400 mt-1">
-                                    <p>Order ID: <span className="font-mono text-gray-500">{tx._id}</span></p>
+                                <div className="text-sm text-gray-400 mt-2 space-y-1">
                                     <p>Learner: <span className="text-accent-500 font-bold">{tx.learnerId?.name}</span> ({tx.learnerId?.email})</p>
-                                    <p className="mt-1">
-                                        Flow: <span className="text-green-400">${tx.amount}</span> 
-                                        <span className="text-gray-600"> (Learner) </span> 
-                                        → <span className="text-indigo-400"> LMS </span>
-                                        → <span className="text-accent-500"> You (${tx.amount * 0.6})</span>
+                                    
+                                    {/* DATES */}
+                                    <p className="text-xs text-gray-500">
+                                        Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        Admin Approved: {tx.adminApprovedAt ? new Date(tx.adminApprovedAt).toLocaleString() : 'Pending/N/A'}
                                     </p>
                                 </div>
                             </div>
@@ -211,13 +210,13 @@ const InstructorDashboard = () => {
                                 <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide ${
                                     tx.status === 'completed' ? 'bg-green-900 text-green-400' :
                                     tx.status === 'pending_instructor' ? 'bg-yellow-900 text-yellow-400' :
-                                    tx.status === 'declined' ? 'bg-red-900 text-red-400' :
+                                    tx.status.includes('declined') ? 'bg-red-900 text-red-400' :
                                     'bg-gray-800 text-gray-400'
                                 }`}>
-                                    {tx.status.replace('_', ' ')}
+                                    {tx.status === 'declined_instructor' ? 'DECLINED' : tx.status.replace('_', ' ')}
                                 </span>
 
-                                {/* VALIDATION ACTIONS (Only if pending) */}
+                                {/* VALIDATION ACTIONS */}
                                 {tx.status === 'pending_instructor' && (
                                     <div className="flex gap-2 mt-2">
                                         <button 

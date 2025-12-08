@@ -5,7 +5,6 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction'); 
 const cloudinary = require('cloudinary').v2;
 
-// Cloudinary Config
 cloudinary.config({
   cloud_name: 'dlzzvvz08', 
   api_key: '588968161895387', 
@@ -22,7 +21,7 @@ const getPublicIdFromUrl = (url) => {
     } catch (err) { return null; }
 };
 
-// 1. Upload/Update Course
+// ... Upload/Update/Delete Routes (Same as before) ...
 router.post('/upload', async (req, res) => {
   const { title, description, price, instructorId, classes } = req.body;
   try {
@@ -61,35 +60,29 @@ router.delete('/delete/:courseId', async (req, res) => {
               const pid = getPublicIdFromUrl(cls.video);
               if (pid) await cloudinary.uploader.destroy(pid, { resource_type: 'video' });
           }
-          if (cls.audio) {
-              const pid = getPublicIdFromUrl(cls.audio);
-              if (pid) await cloudinary.uploader.destroy(pid, { resource_type: 'video' });
-          }
       }
       await Course.findByIdAndDelete(req.params.courseId);
       res.json({ message: "Deleted" });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- UPDATED TRANSACTION HISTORY LOGIC ---
 
-// --- NEW: PAYOUT LOGIC ---
-
-// 5. GET ALL INSTRUCTOR TRANSACTIONS (HISTORY)
-// REPLACED: 'my-approvals' logic to return ALL transactions
 router.get('/my-history/:instructorId', async (req, res) => {
     try {
         const txs = await Transaction.find({ 
-            instructorId: req.params.instructorId 
+            instructorId: req.params.instructorId,
+            // FILTER: Hide things that haven't reached instructor OR were killed by admin
+            status: { $nin: ['pending_admin', 'declined_admin', 'refunded'] }
         })
-        .populate('learnerId', 'name email') // Get Learner details
+        .populate('learnerId', 'name email') 
         .populate('courseId', 'title')
-        .sort({ createdAt: -1 }); // Newest first
+        .sort({ createdAt: -1 }); 
 
         res.json(txs);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 6. INSTRUCTOR ACTION: Approve (Get Paid 60%) or Decline
 router.post('/transaction-action', async (req, res) => {
     const { transactionId, action } = req.body; 
 
@@ -106,14 +99,12 @@ router.post('/transaction-action', async (req, res) => {
         const learnerBank = await Bank.findById(learner.bankAccountId);
 
         if (action === 'approve') {
-            // Split Logic: Instructor gets 60%
             const instructorShare = tx.amount * 0.60;
             
-            // Admin pays Instructor (Admin keeps the remaining 40%)
             adminBank.balance -= instructorShare;
             instructorBank.balance += instructorShare;
 
-            tx.status = 'completed'; // Course Unlocked!
+            tx.status = 'completed'; 
             
             await adminBank.save();
             await instructorBank.save();
@@ -122,11 +113,10 @@ router.post('/transaction-action', async (req, res) => {
             return res.json({ message: `Approved! You received $${instructorShare}.` });
         } 
         else {
-            // Decline: Refund Learner (Admin gives money back)
             adminBank.balance -= tx.amount;
             learnerBank.balance += tx.amount;
             
-            tx.status = 'declined';
+            tx.status = 'declined_instructor'; // <--- CHANGED HERE
             
             await adminBank.save();
             await learnerBank.save();
