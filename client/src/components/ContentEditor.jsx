@@ -8,6 +8,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
 
     const [activeClassIndex, setActiveClassIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
+    const [progress, setProgress] = useState(0); // <--- NEW: Progress State
     
     // Temporary file holders for the ACTIVE class
     const [tempVideoFile, setTempVideoFile] = useState(null);
@@ -20,9 +21,10 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
     useEffect(() => {
         setTempVideoFile(null);
         setTempAudioFile(null);
+        setProgress(0);
     }, [activeClassIndex]);
 
-    // Helper function to upload file
+    // Helper function to upload file with PROGRESS
     const uploadToCloudinary = async (file, resourceType) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -31,7 +33,14 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
         try {
             const res = await axios.post(
                 `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, 
-                formData
+                formData,
+                {
+                    // Axios event listener for upload progress
+                    onUploadProgress: (data) => {
+                        const percent = Math.round((data.loaded / data.total) * 100);
+                        setProgress(percent);
+                    }
+                }
             );
             return res.data.secure_url;
         } catch (err) {
@@ -65,8 +74,6 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
         setCourseData({ ...courseData, classes: newClasses });
     };
 
-   // ... inside ContentEditor component ...
-
     const handleSaveClass = async () => {
         // Validation
         if (!tempVideoFile && !currentClass.video) {
@@ -75,15 +82,15 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
         }
 
         setUploading(true);
+        setProgress(0); // Reset progress start
+
         try {
             let videoUrl = currentClass.video;
             let audioUrl = currentClass.audio;
 
             // 1. Handle Video Replacement
             if (tempVideoFile) {
-                // If there was an OLD video, delete it first to save space
                 if (currentClass.video) {
-                    console.log("Deleting old video...");
                     await axios.post('http://localhost:5000/api/instructor/delete-media', {
                         url: currentClass.video,
                         resourceType: 'video'
@@ -95,12 +102,13 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
 
             // 2. Handle Audio Replacement
             if (tempAudioFile) {
-                // If there was an OLD audio, delete it
+                // Reset progress for next file
+                setProgress(0); 
+                
                 if (currentClass.audio) {
-                    console.log("Deleting old audio...");
                     await axios.post('http://localhost:5000/api/instructor/delete-media', {
                         url: currentClass.audio,
-                        resourceType: 'video' // Cloudinary audio is often stored under 'video' resource type
+                        resourceType: 'video' 
                     });
                 }
                 // Upload NEW audio
@@ -117,12 +125,13 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
             // cleanup temp files
             setTempVideoFile(null);
             setTempAudioFile(null);
-            alert(`Class ${activeClassIndex + 1} content updated! (Old files cleaned up)`);
+            alert(`Class ${activeClassIndex + 1} content updated!`);
         } catch (err) {
             console.error(err);
             alert("Upload/Cleanup failed: " + err.message);
         } finally {
             setUploading(false);
+            setProgress(0);
         }
     };
 
@@ -171,7 +180,6 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                         <label className="text-accent-500 text-sm font-bold uppercase mb-2 block">1. Video (Mandatory)</label>
                         {currentClass.video && <p className="text-green-400 text-xs mb-2 truncate">✓ Saved: {currentClass.video.split('/').pop()}</p>}
                         
-                        {/* KEY ADDED HERE - FIXES THE BUG */}
                         <input 
                             key={`video-${activeClassIndex}`} 
                             type="file" 
@@ -185,7 +193,6 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                         <label className="text-accent-500 text-sm font-bold uppercase mb-2 block">2. Audio (Optional)</label>
                         {currentClass.audio && <p className="text-green-400 text-xs mb-2 truncate">✓ Saved: {currentClass.audio.split('/').pop()}</p>}
                         
-                        {/* KEY ADDED HERE - FIXES THE BUG */}
                         <input 
                             key={`audio-${activeClassIndex}`} 
                             type="file" 
@@ -201,11 +208,23 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                     <textarea className="input-field h-24" value={currentClass.text || ''} onChange={e => handleTextChange(e.target.value)} placeholder="Enter reading materials here..." />
                 </div>
                 
-                <div className="flex justify-end">
+                <div className="flex flex-col items-end gap-3">
+                     {/* PROGRESS BAR */}
+                     {uploading && (
+                        <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden border border-gray-600">
+                            <div 
+                                className="bg-accent-500 h-4 rounded-full transition-all duration-300 ease-out flex items-center justify-center text-[10px] font-bold text-white"
+                                style={{ width: `${progress}%` }}
+                            >
+                                {progress}%
+                            </div>
+                        </div>
+                     )}
+
                      <button 
                         onClick={handleSaveClass} 
                         disabled={uploading}
-                        className={`px-6 py-2 rounded font-bold text-white ${uploading ? 'bg-gray-600' : 'bg-accent-500 hover:bg-indigo-600'}`}
+                        className={`px-6 py-2 rounded font-bold text-white transition ${uploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-accent-500 hover:bg-indigo-600'}`}
                      >
                         {uploading ? 'Uploading...' : 'Save Class Content'}
                      </button>

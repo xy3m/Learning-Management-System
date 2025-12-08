@@ -9,15 +9,19 @@ const AdminDashboard = () => {
   // Data States
   const [balance, setBalance] = useState(0);
   const [instData, setInstData] = useState({ name: '', email: '', password: '' });
-  const [instructorsList, setInstructorsList] = useState([]); // <--- NEW STATE
+  const [instructorsList, setInstructorsList] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [transactions, setTransactions] = useState([]);
+
+  // Sidebar States
+  const [viewingClass, setViewingClass] = useState(null); 
+  const [viewingCourseTitle, setViewingCourseTitle] = useState(''); 
 
   const user = JSON.parse(sessionStorage.getItem('user'));
 
   useEffect(() => {
     fetchBalance(); 
-    if (activeTab === 'instructors') fetchInstructors(); // <--- Fetch list on tab change
+    if (activeTab === 'instructors') fetchInstructors();
     if (activeTab === 'approvals') fetchPendingCourses();
     if (activeTab === 'transactions') fetchTransactions();
   }, [activeTab]);
@@ -27,12 +31,9 @@ const AdminDashboard = () => {
     try {
       const res = await axios.get(`http://localhost:5000/api/bank/balance/${user.id}`);
       setBalance(res.data.balance);
-    } catch (err) { 
-        setBalance(0); 
-    }
+    } catch (err) { setBalance(0); }
   };
 
-  // --- NEW: Fetch Instructors ---
   const fetchInstructors = async () => {
     try {
         const res = await axios.get('http://localhost:5000/api/admin/instructors');
@@ -54,12 +55,27 @@ const AdminDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
-  const handleApproveContent = async (courseId) => {
+  // Inside AdminDashboard.jsx
+
+const handleApproveContent = async (courseId) => {
+  try {
+    await axios.put(`http://localhost:5000/api/admin/approve/${courseId}`);
+    alert("Content Approved! $1000 Bonus sent to Instructor.");
+    
+    fetchPendingCourses(); // Refresh list
+    fetchBalance();        // <--- ADD THIS LINE to update the $ number instantly
+  } catch (err) { 
+    alert(err.response?.data?.message || "Approval failed."); 
+  }
+};
+
+  const handleDeclineContent = async (courseId) => {
+    if(!window.confirm("Are you sure you want to DECLINE this course?")) return;
     try {
-      await axios.put(`http://localhost:5000/api/admin/approve/${courseId}`);
-      alert("Content Approved! Now visible to Learners.");
+      await axios.put(`http://localhost:5000/api/admin/decline/${courseId}`);
+      alert("Course Declined.");
       fetchPendingCourses(); 
-    } catch (err) { alert("Approval failed."); }
+    } catch (err) { alert("Decline failed."); }
   };
 
   const handleTxAction = async (id, action) => {
@@ -80,7 +96,6 @@ const AdminDashboard = () => {
       } catch (err) { alert("Failed to clear history"); }
   };
 
-  // --- NEW: Delete Instructor ---
   const handleDeleteInstructor = async (id) => {
       if(!window.confirm("WARNING: This will delete the instructor and ALL their courses. Continue?")) return;
       try {
@@ -96,7 +111,7 @@ const AdminDashboard = () => {
       await axios.post('http://localhost:5000/api/auth/create-instructor', instData);
       alert("Instructor Created Successfully!");
       setInstData({ name: '', email: '', password: '' });
-      fetchInstructors(); // Refresh list after add
+      fetchInstructors(); 
     } catch (err) { alert("Failed to create instructor."); }
   };
 
@@ -106,7 +121,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center pb-20">
+    <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center pb-20 relative">
       
       {/* HEADER WITH BALANCE */}
       <div className="w-full bg-dark-800 p-8 rounded-xl shadow-glow mb-8 flex justify-between items-center border border-gray-700">
@@ -128,11 +143,9 @@ const AdminDashboard = () => {
         <button onClick={() => setActiveTab('transactions')} className={`pb-2 px-4 transition ${activeTab === 'transactions' ? 'text-accent-500 border-b-2 font-bold' : 'text-gray-400'}`}>Transactions</button>
       </div>
 
-      {/* --- TAB 1: INSTRUCTOR MANAGEMENT (Updated) --- */}
+      {/* --- TAB 1: INSTRUCTOR MANAGEMENT --- */}
       {activeTab === 'instructors' && (
         <div className="w-full flex flex-col md:flex-row gap-8">
-            
-            {/* LEFT: List of Instructors */}
             <div className="flex-1 space-y-4">
                 <h2 className="text-2xl font-bold text-white mb-4">Enlisted Instructors</h2>
                 {instructorsList.length === 0 ? <p className="text-gray-500">No instructors found.</p> : 
@@ -142,8 +155,6 @@ const AdminDashboard = () => {
                                 <div>
                                     <h3 className="text-xl font-bold text-white">{inst.name}</h3>
                                     <p className="text-sm text-gray-400">{inst.email}</p>
-                                    
-                                    {/* Course List */}
                                     <div className="mt-3">
                                         <p className="text-xs text-gray-500 uppercase mb-1">Courses ({inst.courses.length})</p>
                                         <div className="flex flex-wrap gap-2">
@@ -167,8 +178,6 @@ const AdminDashboard = () => {
                     ))
                 }
             </div>
-
-            {/* RIGHT: Add New Form */}
             <div className="w-full md:w-1/3 bg-dark-800 p-8 rounded-2xl shadow-glow border border-gray-700 h-fit sticky top-4">
                <h2 className="text-xl font-bold mb-4 text-white text-center">Add New Instructor</h2>
                <form onSubmit={handleCreateInstructor} className="space-y-4">
@@ -178,13 +187,12 @@ const AdminDashboard = () => {
                  <button className="btn-primary w-full py-2 mt-2">Create Instructor</button>
                </form>
             </div>
-
         </div>
       )}
 
       {/* --- TAB 2: COURSE CONTENT APPROVALS --- */}
       {activeTab === 'approvals' && (
-        <div className="w-full max-w-5xl grid gap-6">
+        <div className="w-full max-w-5xl grid gap-6 relative">
           {pendingCourses.length === 0 ? <p className="text-center text-gray-500">No pending approvals.</p> : 
             pendingCourses.map(course => (
               <div key={course._id} className="bg-dark-800 p-6 rounded-xl border border-gray-700 shadow-glow flex flex-col gap-4">
@@ -195,20 +203,102 @@ const AdminDashboard = () => {
                     <p className="text-sm text-gray-400">Price: ${course.price}</p>
                     <p className="text-xs text-gray-500 mt-1">{course.classes.length} Classes</p>
                   </div>
-                  <button onClick={() => handleApproveContent(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
-                    Approve Content
-                  </button>
+                  <div className="flex gap-2">
+                      <button onClick={() => handleApproveContent(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
+                        Approve Content
+                      </button>
+                      <button onClick={() => handleDeclineContent(course._id)} className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
+                        Decline
+                      </button>
+                  </div>
                 </div>
+                
                 <div className="space-y-2 mt-2">
                     {course.classes.map((cls, idx) => (
-                        <div key={idx} className="bg-dark-900 p-3 rounded text-sm text-gray-400">
-                            Class {idx+1}: {cls.video ? 'Has Video' : 'No Video'}
+                        <div 
+                            key={idx} 
+                            // UPDATED: Save the index (_idx) to force re-render when switching classes
+                            onClick={() => { setViewingClass({ ...cls, _idx: idx }); setViewingCourseTitle(course.title); }}
+                            className="bg-dark-900 p-3 rounded text-sm text-gray-400 cursor-pointer hover:bg-dark-700 hover:text-white transition border border-transparent hover:border-gray-600 flex justify-between"
+                        >
+                            <span>Class {idx+1}: {cls.video ? 'Has Video' : 'No Video'}</span>
+                            <span className="text-accent-500 text-xs">Click to Preview</span>
                         </div>
                     ))}
                 </div>
               </div>
             ))
           }
+
+          {/* --- CONTENT PREVIEW SIDEBAR --- */}
+          {viewingClass && (
+              <div className="fixed top-0 right-0 h-full w-full md:w-1/3 bg-dark-900 border-l border-gray-700 shadow-2xl p-6 overflow-y-auto z-50 transform transition-transform">
+                  <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-white">Content Preview</h2>
+                        <p className="text-sm text-accent-500">{viewingCourseTitle}</p>
+                      </div>
+                      <button onClick={() => setViewingClass(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                  </div>
+
+                  <div className="space-y-6">
+                      {/* Video with Robust Key */}
+                      <div>
+                          <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Video Material</h3>
+                          {viewingClass.video ? (
+                              <video 
+                                key={`${viewingClass._idx}-${viewingClass.video}`} // <--- ROBUST KEY FIX
+                                src={viewingClass.video} 
+                                controls 
+                                preload="auto" // <--- ADDED PRELOAD
+                                className="w-full rounded-lg border border-gray-700" 
+                              />
+                          ) : <p className="text-red-500 text-sm">No Video Uploaded</p>}
+                      </div>
+
+                      {/* Audio */}
+                      <div>
+                          <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Audio Material</h3>
+                          {viewingClass.audio ? (
+                              <audio 
+                                key={`${viewingClass._idx}-${viewingClass.audio}`} 
+                                src={viewingClass.audio} 
+                                controls 
+                                className="w-full" 
+                              />
+                          ) : <p className="text-gray-600 text-sm">No Audio Uploaded</p>}
+                      </div>
+
+                      {/* Text */}
+                      <div>
+                          <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Reading Material</h3>
+                          <div className="bg-dark-800 p-4 rounded border border-gray-800 text-gray-300 text-sm whitespace-pre-wrap">
+                              {viewingClass.text || "No text content provided."}
+                          </div>
+                      </div>
+
+                      {/* MCQs */}
+                      <div>
+                          <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">MCQs ({viewingClass.mcq.length})</h3>
+                          {viewingClass.mcq.length === 0 ? <p className="text-gray-600 text-sm">No MCQs</p> : 
+                             viewingClass.mcq.map((q, i) => (
+                                 <div key={i} className="mb-4 bg-dark-800 p-3 rounded border border-gray-800">
+                                     <p className="font-bold text-white mb-2">{i+1}. {q.question}</p>
+                                     <ul className="list-disc pl-5 text-sm text-gray-400">
+                                         {q.options.map((opt, oid) => (
+                                             <li key={oid} className={opt === q.answer ? "text-green-400 font-bold" : ""}>{opt}</li>
+                                         ))}
+                                     </ul>
+                                     <p className="text-xs text-gray-500 mt-2">Answer: {q.answer}</p>
+                                 </div>
+                             ))
+                          }
+                      </div>
+                  </div>
+                  
+                  <button onClick={() => setViewingClass(null)} className="w-full mt-8 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded font-bold">Close Preview</button>
+              </div>
+          )}
         </div>
       )}
 

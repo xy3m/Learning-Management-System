@@ -21,7 +21,7 @@ const getPublicIdFromUrl = (url) => {
     } catch (err) { return null; }
 };
 
-// ... (Keep upload, my-courses, delete-media, delete routes exactly as they were) ...
+// 1. Upload NEW Course
 router.post('/upload', async (req, res) => {
   const { title, description, price, instructorId, classes } = req.body;
   try {
@@ -29,6 +29,33 @@ router.post('/upload', async (req, res) => {
     await newCourse.save();
     res.status(201).json({ message: "Course submitted successfully!", course: newCourse });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 2. UPDATE Existing Course (Protected)
+router.put('/update/:courseId', async (req, res) => {
+    try {
+        const courseToCheck = await Course.findById(req.params.courseId);
+        if (!courseToCheck) return res.status(404).json({ message: "Course not found" });
+        
+        // --- PROTECTION ---
+        if (courseToCheck.status === 'approved') {
+            return res.status(403).json({ message: "Cannot edit an approved course." });
+        }
+
+        const { title, description, price, classes } = req.body;
+        const updatedCourse = await Course.findByIdAndUpdate(
+            req.params.courseId, 
+            { 
+                title, 
+                description, 
+                price, 
+                classes,
+                status: 'pending' // Re-set to pending after edit
+            }, 
+            { new: true }
+        );
+        res.json({ message: "Course updated successfully!", course: updatedCourse });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get('/my-courses/:instructorId', async (req, res) => {
@@ -51,10 +78,17 @@ router.post('/delete-media', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// 3. DELETE Course (Protected)
 router.delete('/delete/:courseId', async (req, res) => {
     try {
       const course = await Course.findById(req.params.courseId);
       if (!course) return res.status(404).json({ message: "Not found" });
+
+      // --- PROTECTION ---
+      if (course.status === 'approved') {
+          return res.status(403).json({ message: "Cannot delete an approved course." });
+      }
+
       for (const cls of course.classes) {
           if (cls.video) {
               const pid = getPublicIdFromUrl(cls.video);
@@ -66,14 +100,12 @@ router.delete('/delete/:courseId', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- UPDATED TRANSACTION LOGIC ---
-
+// --- TRANSACTION HISTORY ---
 router.get('/my-history/:instructorId', async (req, res) => {
     try {
         const txs = await Transaction.find({ 
             instructorId: req.params.instructorId,
             status: { $nin: ['pending_admin', 'declined_admin', 'refunded'] },
-            // FILTER: Only show items NOT hidden by instructor
             hiddenByInstructor: { $ne: true }
         })
         .populate('learnerId', 'name email') 
@@ -121,10 +153,8 @@ router.post('/transaction-action', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- UPDATED CLEAR HISTORY (SOFT DELETE) ---
 router.delete('/clear-history/:instructorId', async (req, res) => {
     try {
-        // Instead of deleting, we update 'hiddenByInstructor' to true
         await Transaction.updateMany(
             {
                 instructorId: req.params.instructorId,
@@ -132,7 +162,7 @@ router.delete('/clear-history/:instructorId', async (req, res) => {
             },
             { $set: { hiddenByInstructor: true } }
         );
-        res.json({ message: "History cleared (Pending requests preserved)." });
+        res.json({ message: "History cleared." });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

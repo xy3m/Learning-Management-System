@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 // Schema for a Single Class Content
 const ClassContentSchema = new mongoose.Schema({
-  video: { type: String, required: true }, // Mandatory
-  audio: { type: String }, // Optional
-  text: { type: String }, // Optional
+  video: { type: String, required: true }, 
+  audio: { type: String }, 
+  text: { type: String }, 
   mcq: [{ 
     question: { type: String }, 
     options: { type: [String], default: [] },
@@ -18,10 +18,10 @@ const CourseSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   instructorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // NEW: Array of Classes
   classes: [ClassContentSchema],
 
-  status: { type: String, enum: ['pending', 'approved'], default: 'pending' },
+  // UPDATED ENUM to include 'declined'
+  status: { type: String, enum: ['pending', 'approved', 'declined'], default: 'pending' },
   createdAt: { type: Date, default: Date.now }
 });
 
