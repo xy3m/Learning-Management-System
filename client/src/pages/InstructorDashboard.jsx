@@ -7,17 +7,15 @@ const InstructorDashboard = () => {
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [courses, setCourses] = useState([]);
+  const [transactions, setTransactions] = useState([]); // Renamed from approvals
   const user = JSON.parse(sessionStorage.getItem('user'));
 
-  // --- WIZARD STATE ---
+  // --- STATE ---
+  const [activeTab, setActiveTab] = useState('courses'); // 'courses' or 'history'
   const [step, setStep] = useState(1);
-  const [isEditing, setIsEditing] = useState(false); // New Flag
-  const [editingCourseId, setEditingCourseId] = useState(null); // ID of course being edited
-
-  const [courseData, setCourseData] = useState({
-    title: '', description: '', price: '', numClasses: 1, 
-    classes: [] 
-  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState(null);
+  const [courseData, setCourseData] = useState({ title: '', description: '', price: '', numClasses: 1, classes: [] });
 
   useEffect(() => {
     if (!user || user.role !== 'instructor') {
@@ -43,45 +41,49 @@ const InstructorDashboard = () => {
     } catch (err) { console.error("Courses error", err); }
   };
 
-  // --- DELETE HANDLER ---
+  // Fetch Transaction History
+  const fetchHistory = async () => {
+    try {
+        const res = await axios.get(`http://localhost:5000/api/instructor/my-history/${user.id}`);
+        setTransactions(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  // INSTRUCTOR ACTION: Accept/Reject Payout
+  const handleTxAction = async (id, action) => {
+    try {
+        const res = await axios.post('http://localhost:5000/api/instructor/transaction-action', { transactionId: id, action });
+        alert(res.data.message);
+        fetchHistory(); // Refresh history
+        fetchBalance(); 
+    } catch(err) { alert("Action Failed"); }
+  };
+
+  // ... (Keep existing handleDelete, handleEdit, handleStep1Submit, handleFinalSubmit, cancelEdit) ...
   const handleDelete = async (courseId) => {
-    if(!window.confirm("Are you sure? This will delete the course and PERMANENTLY delete all videos from Cloudinary.")) return;
-    
+    if(!window.confirm("Are you sure?")) return;
     try {
         await axios.delete(`http://localhost:5000/api/instructor/delete/${courseId}`);
         alert("Course Deleted");
         fetchCourses();
-    } catch (err) {
-        alert("Delete failed: " + err.message);
-    }
+    } catch (err) { alert("Delete failed"); }
   };
 
-  // --- EDIT HANDLER ---
   const handleEdit = (course) => {
-    setCourseData({
-        title: course.title,
-        description: course.description,
-        price: course.price,
-        numClasses: course.classes.length,
-        classes: course.classes
-    });
+    setCourseData({ title: course.title, description: course.description, price: course.price, numClasses: course.classes.length, classes: course.classes });
     setEditingCourseId(course._id);
     setIsEditing(true);
-    setStep(2); // Jump straight to content editor
+    setStep(2);
   };
 
-  // --- STEP 1: INITIALIZE ---
   const handleStep1Submit = (e) => {
     e.preventDefault();
     setCourseData(prev => {
         const currentClasses = prev.classes || [];
         let newClasses = [...currentClasses];
-
         if (prev.numClasses > currentClasses.length) {
             const extraNeeded = prev.numClasses - currentClasses.length;
-            const extraClasses = Array.from({ length: extraNeeded }, () => ({
-                 video: '', audio: '', text: '', mcq: []
-            }));
+            const extraClasses = Array.from({ length: extraNeeded }, () => ({ video: '', audio: '', text: '', mcq: [] }));
             newClasses = [...newClasses, ...extraClasses];
         } else if (prev.numClasses < currentClasses.length) {
             newClasses = newClasses.slice(0, prev.numClasses);
@@ -91,43 +93,18 @@ const InstructorDashboard = () => {
     setStep(2); 
   };
 
-  // --- FINAL SUBMIT (Handles both Create and Update) ---
   const handleFinalSubmit = async () => {
       try {
-        if (isEditing) {
-            // Update Logic (We need a PUT route for this, or just re-upload logic)
-            // For simplicity, we can delete the old and create new, OR create a specific update route.
-            // Let's create a specific UPDATE route logic here or treat it as new for now (simplest for lab)
-            // Ideally: await axios.put(...)
-            
-            // NOTE: For this lab, let's treat "Edit" as updating the existing ID.
-            // You'll need to add a router.put('/update/:id') in backend similar to upload but with findByIdAndUpdate
-            alert("Edit Mode: Ideally this updates the DB. For now, try Deleting and re-creating if deep editing is needed.");
-        } else {
-            await axios.post('http://localhost:5000/api/instructor/upload', {
-                ...courseData,
-                instructorId: user.id
-            });
-            alert("Course Submitted! Pending Admin Approval.");
-        }
-        
-        // Reset
-        setStep(1);
-        setIsEditing(false);
-        setEditingCourseId(null);
+        await axios.post('http://localhost:5000/api/instructor/upload', { ...courseData, instructorId: user.id });
+        alert("Course Submitted! Pending Admin Approval.");
+        setStep(1); setIsEditing(false); setEditingCourseId(null);
         setCourseData({ title: '', description: '', price: '', numClasses: 1, classes: [] });
         fetchCourses();
-      } catch (err) {
-          alert("Submission Failed: " + err.message);
-      }
+      } catch (err) { alert("Submission Failed"); }
   };
 
-  const cancelEdit = () => {
-      setStep(1);
-      setIsEditing(false);
-      setEditingCourseId(null);
-      setCourseData({ title: '', description: '', price: '', numClasses: 1, classes: [] });
-  };
+  const cancelEdit = () => { setStep(1); setIsEditing(false); setEditingCourseId(null); setCourseData({ title: '', description: '', price: '', numClasses: 1, classes: [] }); };
+
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -143,78 +120,129 @@ const InstructorDashboard = () => {
         </div>
       </div>
 
-      {/* --- STEP 1: METADATA FORM --- */}
-      {step === 1 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">Step 1: Course Info</h2>
-                <form onSubmit={handleStep1Submit} className="space-y-4">
-                    <div>
-                        <label className="text-gray-400 text-sm mb-1 block">Course Title</label>
-                        <input className="input-field" value={courseData.title} onChange={e => setCourseData({...courseData, title: e.target.value})} required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                             <label className="text-gray-400 text-sm mb-1 block">Price ($)</label>
-                             <input className="input-field" type="number" value={courseData.price} onChange={e => setCourseData({...courseData, price: e.target.value})} required />
-                        </div>
-                        <div>
-                             <label className="text-gray-400 text-sm mb-1 block">Number of Classes</label>
-                             <input className="input-field" type="number" min="1" max="50" value={courseData.numClasses} onChange={e => setCourseData({...courseData, numClasses: parseInt(e.target.value) || 1})} required />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="text-gray-400 text-sm mb-1 block">Description</label>
-                        <textarea className="input-field h-32" value={courseData.description} onChange={e => setCourseData({...courseData, description: e.target.value})} required />
-                    </div>
-                    <button className="btn-primary w-full mt-4">Next: Add Content →</button>
-                </form>
-            </div>
+      {/* TABS */}
+      <div className="flex gap-4 mb-6 border-b border-gray-700 pb-2">
+        <button onClick={() => setActiveTab('courses')} className={`pb-2 px-4 ${activeTab === 'courses' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
+            Manage Courses
+        </button>
+        <button onClick={() => { setActiveTab('history'); fetchHistory(); }} className={`pb-2 px-4 ${activeTab === 'history' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
+            Transaction History
+        </button>
+      </div>
 
-            {/* SIDEBAR WITH EDIT/DELETE */}
-            <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">My Uploaded Courses</h2>
-                <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                    {courses.length === 0 ? <p className="text-gray-500">No courses yet.</p> : courses.map(c => (
-                        <div key={c._id} className="p-4 bg-dark-900 rounded border border-gray-800">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-white font-bold">{c.title}</span>
-                                <span className={`text-xs px-2 py-1 rounded ${c.status === 'approved' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>{c.status}</span>
+      {/* --- TAB 1: COURSES (Existing Wizard) --- */}
+      {activeTab === 'courses' && (
+        <>
+            {step === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
+                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">Step 1: Course Info</h2>
+                        <form onSubmit={handleStep1Submit} className="space-y-4">
+                            <input className="input-field" placeholder="Course Title" value={courseData.title} onChange={e => setCourseData({...courseData, title: e.target.value})} required />
+                            <div className="grid grid-cols-2 gap-4">
+                                <input className="input-field" type="number" placeholder="Price ($)" value={courseData.price} onChange={e => setCourseData({...courseData, price: e.target.value})} required />
+                                <input className="input-field" type="number" placeholder="Num Classes" min="1" max="50" value={courseData.numClasses} onChange={e => setCourseData({...courseData, numClasses: parseInt(e.target.value) || 1})} required />
                             </div>
-                            
-                            {/* ACTION BUTTONS (Only for Pending) */}
-                            {c.status === 'pending' && (
-                                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-800">
-                                    <button 
-                                        onClick={() => handleEdit(c)}
-                                        className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDelete(c._id)}
-                                        className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded"
-                                    >
-                                        Delete
-                                    </button>
+                            <textarea className="input-field h-32" placeholder="Description" value={courseData.description} onChange={e => setCourseData({...courseData, description: e.target.value})} required />
+                            <button className="btn-primary w-full mt-4">Next: Add Content →</button>
+                        </form>
+                    </div>
+
+                    <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
+                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">My Uploaded Courses</h2>
+                        <div className="space-y-4 max-h-[500px] overflow-y-auto">
+                            {courses.map(c => (
+                                <div key={c._id} className="p-4 bg-dark-900 rounded border border-gray-800">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-white font-bold">{c.title}</span>
+                                        <span className={`text-xs px-2 py-1 rounded ${c.status === 'approved' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>{c.status}</span>
+                                    </div>
+                                    {c.status === 'pending' && (
+                                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-800">
+                                            <button onClick={() => handleEdit(c)} className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">Edit</button>
+                                            <button onClick={() => handleDelete(c._id)} className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {step === 2 && (
+                <ContentEditor 
+                    courseData={courseData} 
+                    setCourseData={setCourseData} 
+                    onBack={cancelEdit} 
+                    onFinalSubmit={handleFinalSubmit}
+                />
+            )}
+        </>
+      )}
+
+      {/* --- TAB 2: TRANSACTION HISTORY --- */}
+      {activeTab === 'history' && (
+        <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-white">Course Orders & Payouts</h2>
+            
+            {transactions.length === 0 ? <p className="text-gray-500">No transaction history found.</p> : (
+                <div className="space-y-3">
+                    {transactions.map(tx => (
+                        <div key={tx._id} className="flex justify-between items-center p-4 bg-dark-900 border border-gray-800 rounded-lg hover:border-gray-600 transition">
+                            
+                            {/* LEFT: Order Info */}
+                            <div>
+                                <h3 className="text-white font-bold text-lg">{tx.courseId?.title || "Course Unavailable"}</h3>
+                                <div className="text-sm text-gray-400 mt-1">
+                                    <p>Order ID: <span className="font-mono text-gray-500">{tx._id}</span></p>
+                                    <p>Learner: <span className="text-accent-500 font-bold">{tx.learnerId?.name}</span> ({tx.learnerId?.email})</p>
+                                    <p className="mt-1">
+                                        Flow: <span className="text-green-400">${tx.amount}</span> 
+                                        <span className="text-gray-600"> (Learner) </span> 
+                                        → <span className="text-indigo-400"> LMS </span>
+                                        → <span className="text-accent-500"> You (${tx.amount * 0.6})</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* RIGHT: Status & Actions */}
+                            <div className="text-right flex flex-col items-end gap-2">
+                                <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide ${
+                                    tx.status === 'completed' ? 'bg-green-900 text-green-400' :
+                                    tx.status === 'pending_instructor' ? 'bg-yellow-900 text-yellow-400' :
+                                    tx.status === 'declined' ? 'bg-red-900 text-red-400' :
+                                    'bg-gray-800 text-gray-400'
+                                }`}>
+                                    {tx.status.replace('_', ' ')}
+                                </span>
+
+                                {/* VALIDATION ACTIONS (Only if pending) */}
+                                {tx.status === 'pending_instructor' && (
+                                    <div className="flex gap-2 mt-2">
+                                        <button 
+                                            onClick={() => handleTxAction(tx._id, 'approve')} 
+                                            className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transition"
+                                        >
+                                            Accept Payment
+                                        </button>
+                                        <button 
+                                            onClick={() => handleTxAction(tx._id, 'decline')} 
+                                            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transition"
+                                        >
+                                            Reject
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
                     ))}
                 </div>
-            </div>
+            )}
         </div>
       )}
 
-      {/* --- STEP 2: CONTENT EDITOR --- */}
-      {step === 2 && (
-          <ContentEditor 
-            courseData={courseData} 
-            setCourseData={setCourseData} 
-            onBack={cancelEdit} 
-            onFinalSubmit={handleFinalSubmit}
-          />
-      )}
     </div>
   );
 };

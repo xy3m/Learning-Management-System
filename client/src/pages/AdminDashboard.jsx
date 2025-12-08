@@ -4,18 +4,34 @@ import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('instructors');
+  const [activeTab, setActiveTab] = useState('transactions'); 
   
   // Data States
+  const [balance, setBalance] = useState(0);
   const [instData, setInstData] = useState({ name: '', email: '', password: '' });
   const [pendingCourses, setPendingCourses] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
+  // Get Admin User ID
+  const user = JSON.parse(sessionStorage.getItem('user'));
+
   // Fetch Data based on active tab
   useEffect(() => {
+    fetchBalance(); // Always fetch balance
     if (activeTab === 'approvals') fetchPendingCourses();
     if (activeTab === 'transactions') fetchTransactions();
   }, [activeTab]);
+
+  const fetchBalance = async () => {
+    if(!user) return;
+    try {
+      const res = await axios.get(`http://localhost:5000/api/bank/balance/${user.id}`);
+      setBalance(res.data.balance);
+    } catch (err) { 
+        console.log("Admin bank likely not initialized yet.");
+        setBalance(0); 
+    }
+  };
 
   const fetchPendingCourses = async () => {
     try {
@@ -31,14 +47,22 @@ const AdminDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
-  const handleApprove = async (courseId) => {
+  const handleApproveContent = async (courseId) => {
     try {
       await axios.put(`http://localhost:5000/api/admin/approve/${courseId}`);
-      alert("Course Approved! Instructor Paid.");
-      fetchPendingCourses(); // Refresh list
-    } catch (err) {
-      alert("Approval failed.");
-    }
+      alert("Content Approved! Now visible to Learners.");
+      fetchPendingCourses(); 
+    } catch (err) { alert("Approval failed."); }
+  };
+
+  // ACTION: Approve Purchase
+  const handleTxAction = async (id, action) => {
+    try {
+        const res = await axios.post('http://localhost:5000/api/admin/transaction-action', { transactionId: id, action });
+        alert(res.data.message);
+        fetchTransactions();
+        fetchBalance(); // Update Admin Balance immediately
+    } catch(err) { alert("Action failed"); }
   };
 
   const handleCreateInstructor = async (e) => {
@@ -57,9 +81,19 @@ const AdminDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center">
-      <div className="w-full flex justify-between items-center mb-8 px-4">
-         <h1 className="text-4xl font-bold text-white">LMS Admin Panel</h1>
-         <button onClick={handleLogout} className="text-red-500 hover:text-white border border-red-500 px-4 py-1 rounded">Logout</button>
+      
+      {/* HEADER WITH BALANCE */}
+      <div className="w-full bg-dark-800 p-8 rounded-xl shadow-glow mb-8 flex justify-between items-center border border-gray-700">
+        <div>
+          <h1 className="text-3xl font-bold text-white">LMS Admin Panel</h1>
+          <p className="text-gray-400">System Management</p>
+        </div>
+        
+        {/* MODIFIED SECTION: Removed Button & Renamed Label */}
+        <div className="text-right">
+          <p className="text-sm text-gray-400 uppercase tracking-widest">Bank Balance</p>
+          <p className="text-4xl font-mono text-accent-500 font-bold mt-2">${balance}</p>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -82,7 +116,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* --- TAB 2: COURSE APPROVALS --- */}
+      {/* --- TAB 2: COURSE CONTENT APPROVALS --- */}
       {activeTab === 'approvals' && (
         <div className="w-full max-w-5xl grid gap-6">
           {pendingCourses.length === 0 ? <p className="text-center text-gray-500">No pending approvals.</p> : 
@@ -95,42 +129,14 @@ const AdminDashboard = () => {
                     <p className="text-sm text-gray-400">Price: ${course.price}</p>
                     <p className="text-xs text-gray-500 mt-1">{course.classes.length} Classes</p>
                   </div>
-                  <button onClick={() => handleApprove(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
-                    Approve & Pay
+                  <button onClick={() => handleApproveContent(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
+                    Approve Content
                   </button>
                 </div>
-
-                {/* Class Content Preview (Iterating through Classes) */}
-                <div className="space-y-3 mt-2">
+                <div className="space-y-2 mt-2">
                     {course.classes.map((cls, idx) => (
-                        <div key={idx} className="bg-dark-900 p-4 rounded-lg border border-gray-800 text-sm">
-                            <h4 className="text-accent-500 font-bold mb-2">Class {idx + 1} Content</h4>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-500 font-bold">Video:</p>
-                                    {cls.video ? (
-                                        <a href={cls.video} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline truncate block w-64">{cls.video}</a>
-                                    ) : <span className="text-red-500">Missing</span>}
-                                </div>
-                                <div>
-                                    <p className="text-gray-500 font-bold">Audio:</p>
-                                    {cls.audio ? (
-                                        <a href={cls.audio} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline truncate block w-64">{cls.audio}</a>
-                                    ) : <span className="text-gray-600">None</span>}
-                                </div>
-                                {cls.text && (
-                                    <div className="col-span-2">
-                                        <p className="text-gray-500 font-bold">Text:</p>
-                                        <p className="text-gray-400 truncate">{cls.text}</p>
-                                    </div>
-                                )}
-                                {cls.mcq && cls.mcq.length > 0 && (
-                                    <div className="col-span-2">
-                                        <p className="text-gray-500 font-bold">MCQs:</p>
-                                        <p className="text-gray-400">{cls.mcq.length} Questions</p>
-                                    </div>
-                                )}
-                            </div>
+                        <div key={idx} className="bg-dark-900 p-3 rounded text-sm text-gray-400">
+                            Class {idx+1}: {cls.video ? 'Has Video' : 'No Video'}
                         </div>
                     ))}
                 </div>
@@ -155,12 +161,20 @@ const AdminDashboard = () => {
                             </div>
                             <div className="text-right">
                                 <p className="text-xl font-bold text-white">${tx.amount}</p>
-                                <span className={`text-xs px-2 py-1 rounded uppercase ${
+                                <span className={`text-xs px-2 py-1 rounded uppercase block mb-2 ${
                                     tx.status === 'completed' ? 'text-green-500 bg-green-900' :
                                     tx.status.includes('pending') ? 'text-yellow-500 bg-yellow-900' : 'text-gray-500'
                                 }`}>
                                     {tx.status.replace('_', ' ')}
                                 </span>
+                                
+                                {/* ADMIN APPROVAL BUTTONS */}
+                                {tx.status === 'pending_admin' && (
+                                    <div className="flex gap-2 justify-end">
+                                        <button onClick={() => handleTxAction(tx._id, 'approve')} className="bg-green-600 px-3 py-1 rounded text-white text-xs hover:bg-green-500">Approve</button>
+                                        <button onClick={() => handleTxAction(tx._id, 'decline')} className="bg-red-600 px-3 py-1 rounded text-white text-xs hover:bg-red-500">Decline</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
