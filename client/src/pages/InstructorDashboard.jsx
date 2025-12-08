@@ -57,6 +57,17 @@ const InstructorDashboard = () => {
     } catch(err) { alert("Action Failed"); }
   };
 
+  // --- NEW: Handle Clear History ---
+  const handleClearHistory = async () => {
+      if(!window.confirm("Clear all Completed and Declined transactions? (Pending requests will be kept)")) return;
+      try {
+          await axios.delete(`http://localhost:5000/api/instructor/clear-history/${user.id}`);
+          fetchHistory(); // Refresh list
+          alert("History Cleared!");
+      } catch (err) { alert("Failed to clear history"); }
+  };
+
+
   // ... (Keep existing Course Handlers: handleDelete, handleEdit, handleStep1Submit, handleFinalSubmit, cancelEdit) ...
   const handleDelete = async (courseId) => {
     if(!window.confirm("Are you sure?")) return;
@@ -134,7 +145,7 @@ const InstructorDashboard = () => {
             {step === 1 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">Step 1: Course Info</h2>
+                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">Course Info</h2>
                         <form onSubmit={handleStep1Submit} className="space-y-4">
                             <input className="input-field" placeholder="Course Title" value={courseData.title} onChange={e => setCourseData({...courseData, title: e.target.value})} required />
                             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +193,18 @@ const InstructorDashboard = () => {
       {/* --- TAB 2: TRANSACTION HISTORY --- */}
       {activeTab === 'history' && (
         <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-            <h2 className="text-xl font-bold mb-4 text-white">Course Orders & Payouts</h2>
+            {/* Header with Clear Button */}
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">Course Orders & Payouts</h2>
+                {transactions.length > 0 && (
+                    <button 
+                        onClick={handleClearHistory} 
+                        className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition"
+                    >
+                        Clear History
+                    </button>
+                )}
+            </div>
             
             {transactions.length === 0 ? <p className="text-gray-500">No active transactions found.</p> : (
                 <div className="space-y-3">

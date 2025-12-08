@@ -23,13 +23,16 @@ router.put('/approve/:courseId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. Get All Transactions
+// 3. Get All Transactions (UPDATED)
 router.get('/transactions', async (req, res) => {
   try {
-    const txs = await Transaction.find()
-        .populate('learnerId', 'name')
-        .populate('courseId', 'title')
-        .sort({ createdAt: -1 });
+    const txs = await Transaction.find({
+        // FILTER: Only show items NOT hidden by admin
+        hiddenByAdmin: { $ne: true }
+    })
+    .populate('learnerId', 'name')
+    .populate('courseId', 'title')
+    .sort({ createdAt: -1 });
     res.json(txs);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -44,7 +47,7 @@ router.post('/transaction-action', async (req, res) => {
 
         if (action === 'approve') {
             tx.status = 'pending_instructor';
-            tx.adminApprovedAt = new Date(); // <--- SAVING THE DATE HERE
+            tx.adminApprovedAt = new Date();
             await tx.save();
             return res.json({ message: "Approved! Forwarded to Instructor." });
         } 
@@ -65,6 +68,24 @@ router.post('/transaction-action', async (req, res) => {
             await tx.save();
             return res.json({ message: "Transaction Declined. Money Refunded." });
         }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 5. NEW: ADMIN CLEAR HISTORY (SOFT DELETE)
+router.delete('/clear-history', async (req, res) => {
+    try {
+        // Hides Completed, Declined (by anyone), or Refunded items for Admin
+        await Transaction.updateMany(
+            {
+                status: { 
+                    $in: ['completed', 'declined', 'declined_admin', 'declined_instructor', 'refunded'] 
+                }
+            },
+            { $set: { hiddenByAdmin: true } }
+        );
+        res.json({ message: "Admin history cleared." });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

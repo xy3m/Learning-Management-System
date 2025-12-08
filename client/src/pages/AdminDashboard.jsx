@@ -12,12 +12,10 @@ const AdminDashboard = () => {
   const [pendingCourses, setPendingCourses] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
-  // Get Admin User ID
   const user = JSON.parse(sessionStorage.getItem('user'));
 
-  // Fetch Data based on active tab
   useEffect(() => {
-    fetchBalance(); // Always fetch balance
+    fetchBalance(); 
     if (activeTab === 'approvals') fetchPendingCourses();
     if (activeTab === 'transactions') fetchTransactions();
   }, [activeTab]);
@@ -28,7 +26,6 @@ const AdminDashboard = () => {
       const res = await axios.get(`http://localhost:5000/api/bank/balance/${user.id}`);
       setBalance(res.data.balance);
     } catch (err) { 
-        console.log("Admin bank likely not initialized yet.");
         setBalance(0); 
     }
   };
@@ -55,14 +52,23 @@ const AdminDashboard = () => {
     } catch (err) { alert("Approval failed."); }
   };
 
-  // ACTION: Approve Purchase
   const handleTxAction = async (id, action) => {
     try {
         const res = await axios.post('http://localhost:5000/api/admin/transaction-action', { transactionId: id, action });
         alert(res.data.message);
         fetchTransactions();
-        fetchBalance(); // Update Admin Balance immediately
+        fetchBalance(); 
     } catch(err) { alert("Action failed"); }
+  };
+
+  // --- Handle Admin Clear History ---
+  const handleClearHistory = async () => {
+      if(!window.confirm("Clear all Completed and Declined transactions from your view?")) return;
+      try {
+          await axios.delete('http://localhost:5000/api/admin/clear-history');
+          fetchTransactions(); // Refresh list
+          alert("Admin History Cleared!");
+      } catch (err) { alert("Failed to clear history"); }
   };
 
   const handleCreateInstructor = async (e) => {
@@ -89,7 +95,6 @@ const AdminDashboard = () => {
           <p className="text-gray-400">System Management</p>
         </div>
         
-        {/* MODIFIED SECTION: Removed Button & Renamed Label */}
         <div className="text-right">
           <p className="text-sm text-gray-400 uppercase tracking-widest">Bank Balance</p>
           <p className="text-4xl font-mono text-accent-500 font-bold mt-2">${balance}</p>
@@ -146,10 +151,21 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* --- TAB 3: TRANSACTIONS --- */}
+      {/* --- TAB 3: TRANSACTIONS (Updated Date/Time) --- */}
       {activeTab === 'transactions' && (
         <div className="w-full max-w-4xl bg-dark-800 p-6 rounded-xl border border-gray-700">
-            <h2 className="text-2xl font-bold text-white mb-6">Transaction History</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Transaction History</h2>
+                {transactions.length > 0 && (
+                    <button 
+                        onClick={handleClearHistory} 
+                        className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition"
+                    >
+                        Clear History
+                    </button>
+                )}
+            </div>
+
             {transactions.length === 0 ? <p className="text-gray-500 text-center">No transactions found.</p> : (
                 <div className="space-y-4">
                     {transactions.map(tx => (
@@ -157,13 +173,18 @@ const AdminDashboard = () => {
                             <div>
                                 <p className="text-white font-bold">{tx.courseId?.title || "Unknown Course"}</p>
                                 <p className="text-sm text-gray-400">Learner: {tx.learnerId?.name}</p>
-                                <p className="text-xs text-gray-500">ID: {tx._id}</p>
+                                
+                                {/* --- CHANGED: Display Date instead of ID --- */}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'Date unavailable'}
+                                </p>
                             </div>
                             <div className="text-right">
                                 <p className="text-xl font-bold text-white">${tx.amount}</p>
                                 <span className={`text-xs px-2 py-1 rounded uppercase block mb-2 ${
                                     tx.status === 'completed' ? 'text-green-500 bg-green-900' :
-                                    tx.status.includes('pending') ? 'text-yellow-500 bg-yellow-900' : 'text-gray-500'
+                                    tx.status.includes('pending') ? 'text-yellow-500 bg-yellow-900' : 
+                                    tx.status.includes('declined') ? 'text-red-500 bg-red-900' : 'text-gray-500'
                                 }`}>
                                     {tx.status.replace('_', ' ')}
                                 </span>

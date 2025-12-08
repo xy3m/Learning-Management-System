@@ -21,7 +21,7 @@ const getPublicIdFromUrl = (url) => {
     } catch (err) { return null; }
 };
 
-// ... Upload/Update/Delete Routes (Same as before) ...
+// ... (Keep upload, my-courses, delete-media, delete routes exactly as they were) ...
 router.post('/upload', async (req, res) => {
   const { title, description, price, instructorId, classes } = req.body;
   try {
@@ -66,14 +66,15 @@ router.delete('/delete/:courseId', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- UPDATED TRANSACTION HISTORY LOGIC ---
+// --- UPDATED TRANSACTION LOGIC ---
 
 router.get('/my-history/:instructorId', async (req, res) => {
     try {
         const txs = await Transaction.find({ 
             instructorId: req.params.instructorId,
-            // FILTER: Hide things that haven't reached instructor OR were killed by admin
-            status: { $nin: ['pending_admin', 'declined_admin', 'refunded'] }
+            status: { $nin: ['pending_admin', 'declined_admin', 'refunded'] },
+            // FILTER: Only show items NOT hidden by instructor
+            hiddenByInstructor: { $ne: true }
         })
         .populate('learnerId', 'name email') 
         .populate('courseId', 'title')
@@ -85,7 +86,6 @@ router.get('/my-history/:instructorId', async (req, res) => {
 
 router.post('/transaction-action', async (req, res) => {
     const { transactionId, action } = req.body; 
-
     try {
         const tx = await Transaction.findById(transactionId);
         if(!tx) return res.status(404).json({ message: "Tx not found" });
@@ -100,30 +100,39 @@ router.post('/transaction-action', async (req, res) => {
 
         if (action === 'approve') {
             const instructorShare = tx.amount * 0.60;
-            
             adminBank.balance -= instructorShare;
             instructorBank.balance += instructorShare;
-
             tx.status = 'completed'; 
-            
+            tx.adminApprovedAt = tx.adminApprovedAt || new Date(); 
             await adminBank.save();
             await instructorBank.save();
             await tx.save();
-
             return res.json({ message: `Approved! You received $${instructorShare}.` });
         } 
         else {
             adminBank.balance -= tx.amount;
             learnerBank.balance += tx.amount;
-            
-            tx.status = 'declined_instructor'; // <--- CHANGED HERE
-            
+            tx.status = 'declined_instructor'; 
             await adminBank.save();
             await learnerBank.save();
             await tx.save();
-
             return res.json({ message: "Declined. Learner refunded." });
         }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- UPDATED CLEAR HISTORY (SOFT DELETE) ---
+router.delete('/clear-history/:instructorId', async (req, res) => {
+    try {
+        // Instead of deleting, we update 'hiddenByInstructor' to true
+        await Transaction.updateMany(
+            {
+                instructorId: req.params.instructorId,
+                status: { $in: ['completed', 'declined_instructor', 'declined'] }
+            },
+            { $set: { hiddenByInstructor: true } }
+        );
+        res.json({ message: "History cleared (Pending requests preserved)." });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
