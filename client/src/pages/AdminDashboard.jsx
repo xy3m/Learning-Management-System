@@ -9,6 +9,7 @@ const AdminDashboard = () => {
   // Data States
   const [balance, setBalance] = useState(0);
   const [instData, setInstData] = useState({ name: '', email: '', password: '' });
+  const [instructorsList, setInstructorsList] = useState([]); // <--- NEW STATE
   const [pendingCourses, setPendingCourses] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchBalance(); 
+    if (activeTab === 'instructors') fetchInstructors(); // <--- Fetch list on tab change
     if (activeTab === 'approvals') fetchPendingCourses();
     if (activeTab === 'transactions') fetchTransactions();
   }, [activeTab]);
@@ -28,6 +30,14 @@ const AdminDashboard = () => {
     } catch (err) { 
         setBalance(0); 
     }
+  };
+
+  // --- NEW: Fetch Instructors ---
+  const fetchInstructors = async () => {
+    try {
+        const res = await axios.get('http://localhost:5000/api/admin/instructors');
+        setInstructorsList(res.data);
+    } catch (err) { console.error(err); }
   };
 
   const fetchPendingCourses = async () => {
@@ -61,14 +71,23 @@ const AdminDashboard = () => {
     } catch(err) { alert("Action failed"); }
   };
 
-  // --- Handle Admin Clear History ---
   const handleClearHistory = async () => {
       if(!window.confirm("Clear all Completed and Declined transactions from your view?")) return;
       try {
           await axios.delete('http://localhost:5000/api/admin/clear-history');
-          fetchTransactions(); // Refresh list
+          fetchTransactions(); 
           alert("Admin History Cleared!");
       } catch (err) { alert("Failed to clear history"); }
+  };
+
+  // --- NEW: Delete Instructor ---
+  const handleDeleteInstructor = async (id) => {
+      if(!window.confirm("WARNING: This will delete the instructor and ALL their courses. Continue?")) return;
+      try {
+          await axios.delete(`http://localhost:5000/api/admin/instructor/${id}`);
+          alert("Instructor deleted.");
+          fetchInstructors();
+      } catch (err) { alert("Delete failed"); }
   };
 
   const handleCreateInstructor = async (e) => {
@@ -77,6 +96,7 @@ const AdminDashboard = () => {
       await axios.post('http://localhost:5000/api/auth/create-instructor', instData);
       alert("Instructor Created Successfully!");
       setInstData({ name: '', email: '', password: '' });
+      fetchInstructors(); // Refresh list after add
     } catch (err) { alert("Failed to create instructor."); }
   };
 
@@ -86,7 +106,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center">
+    <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center pb-20">
       
       {/* HEADER WITH BALANCE */}
       <div className="w-full bg-dark-800 p-8 rounded-xl shadow-glow mb-8 flex justify-between items-center border border-gray-700">
@@ -108,16 +128,57 @@ const AdminDashboard = () => {
         <button onClick={() => setActiveTab('transactions')} className={`pb-2 px-4 transition ${activeTab === 'transactions' ? 'text-accent-500 border-b-2 font-bold' : 'text-gray-400'}`}>Transactions</button>
       </div>
 
-      {/* --- TAB 1: INSTRUCTOR MANAGEMENT --- */}
+      {/* --- TAB 1: INSTRUCTOR MANAGEMENT (Updated) --- */}
       {activeTab === 'instructors' && (
-        <div className="bg-dark-800 p-10 rounded-2xl shadow-glow border border-gray-700 w-full max-w-lg">
-           <h2 className="text-2xl font-bold mb-4 text-white text-center">Add New Instructor</h2>
-           <form onSubmit={handleCreateInstructor} className="space-y-5">
-             <input className="input-field" placeholder="Name" value={instData.name} onChange={e => setInstData({...instData, name: e.target.value})} />
-             <input className="input-field" placeholder="Email" value={instData.email} onChange={e => setInstData({...instData, email: e.target.value})} />
-             <input className="input-field" type="password" placeholder="Password" value={instData.password} onChange={e => setInstData({...instData, password: e.target.value})} />
-             <button className="btn-primary w-full py-3 mt-4">Create Instructor</button>
-           </form>
+        <div className="w-full flex flex-col md:flex-row gap-8">
+            
+            {/* LEFT: List of Instructors */}
+            <div className="flex-1 space-y-4">
+                <h2 className="text-2xl font-bold text-white mb-4">Enlisted Instructors</h2>
+                {instructorsList.length === 0 ? <p className="text-gray-500">No instructors found.</p> : 
+                    instructorsList.map(inst => (
+                        <div key={inst._id} className="bg-dark-800 p-5 rounded-xl border border-gray-700 shadow-sm hover:border-gray-500 transition">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">{inst.name}</h3>
+                                    <p className="text-sm text-gray-400">{inst.email}</p>
+                                    
+                                    {/* Course List */}
+                                    <div className="mt-3">
+                                        <p className="text-xs text-gray-500 uppercase mb-1">Courses ({inst.courses.length})</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {inst.courses.length === 0 && <span className="text-xs text-gray-600 italic">No courses</span>}
+                                            {inst.courses.map(c => (
+                                                <span key={c._id} className={`text-xs px-2 py-1 rounded border ${c.status === 'approved' ? 'border-green-800 text-green-400 bg-green-900/20' : 'border-yellow-800 text-yellow-400 bg-yellow-900/20'}`}>
+                                                    {c.title}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => handleDeleteInstructor(inst._id)}
+                                    className="text-xs bg-red-900/50 text-red-400 border border-red-900 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+
+            {/* RIGHT: Add New Form */}
+            <div className="w-full md:w-1/3 bg-dark-800 p-8 rounded-2xl shadow-glow border border-gray-700 h-fit sticky top-4">
+               <h2 className="text-xl font-bold mb-4 text-white text-center">Add New Instructor</h2>
+               <form onSubmit={handleCreateInstructor} className="space-y-4">
+                 <input className="input-field" placeholder="Name" value={instData.name} onChange={e => setInstData({...instData, name: e.target.value})} required />
+                 <input className="input-field" placeholder="Email" value={instData.email} onChange={e => setInstData({...instData, email: e.target.value})} required />
+                 <input className="input-field" type="password" placeholder="Password" value={instData.password} onChange={e => setInstData({...instData, password: e.target.value})} required />
+                 <button className="btn-primary w-full py-2 mt-2">Create Instructor</button>
+               </form>
+            </div>
+
         </div>
       )}
 
@@ -151,7 +212,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* --- TAB 3: TRANSACTIONS (Updated Date/Time) --- */}
+      {/* --- TAB 3: TRANSACTIONS --- */}
       {activeTab === 'transactions' && (
         <div className="w-full max-w-4xl bg-dark-800 p-6 rounded-xl border border-gray-700">
             <div className="flex justify-between items-center mb-6">
@@ -173,8 +234,6 @@ const AdminDashboard = () => {
                             <div>
                                 <p className="text-white font-bold">{tx.courseId?.title || "Unknown Course"}</p>
                                 <p className="text-sm text-gray-400">Learner: {tx.learnerId?.name}</p>
-                                
-                                {/* --- CHANGED: Display Date instead of ID --- */}
                                 <p className="text-xs text-gray-500 mt-1">
                                     Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'Date unavailable'}
                                 </p>
@@ -189,7 +248,6 @@ const AdminDashboard = () => {
                                     {tx.status.replace('_', ' ')}
                                 </span>
                                 
-                                {/* ADMIN APPROVAL BUTTONS */}
                                 {tx.status === 'pending_admin' && (
                                     <div className="flex gap-2 justify-end">
                                         <button onClick={() => handleTxAction(tx._id, 'approve')} className="bg-green-600 px-3 py-1 rounded text-white text-xs hover:bg-green-500">Approve</button>

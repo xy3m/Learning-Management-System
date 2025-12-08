@@ -23,11 +23,10 @@ router.put('/approve/:courseId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. Get All Transactions (UPDATED)
+// 3. Get All Transactions
 router.get('/transactions', async (req, res) => {
   try {
     const txs = await Transaction.find({
-        // FILTER: Only show items NOT hidden by admin
         hiddenByAdmin: { $ne: true }
     })
     .populate('learnerId', 'name')
@@ -73,10 +72,9 @@ router.post('/transaction-action', async (req, res) => {
     }
 });
 
-// 5. NEW: ADMIN CLEAR HISTORY (SOFT DELETE)
+// 5. ADMIN CLEAR HISTORY
 router.delete('/clear-history', async (req, res) => {
     try {
-        // Hides Completed, Declined (by anyone), or Refunded items for Admin
         await Transaction.updateMany(
             {
                 status: { 
@@ -89,6 +87,36 @@ router.delete('/clear-history', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// 6. NEW: GET ALL INSTRUCTORS (With Course Info)
+router.get('/instructors', async (req, res) => {
+    try {
+        const instructors = await User.find({ role: 'instructor' }).select('-password');
+        
+        // Attach courses for each instructor
+        const data = await Promise.all(instructors.map(async (inst) => {
+            const courses = await Course.find({ instructorId: inst._id }, 'title status price');
+            return {
+                ...inst._doc,
+                courses
+            };
+        }));
+        
+        res.json(data);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 7. NEW: DELETE INSTRUCTOR
+router.delete('/instructor/:id', async (req, res) => {
+    try {
+        // Delete the User
+        await User.findByIdAndDelete(req.params.id);
+        // Delete their Courses (Optional but recommended to avoid data issues)
+        await Course.deleteMany({ instructorId: req.params.id });
+        
+        res.json({ message: "Instructor and their courses deleted." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;
