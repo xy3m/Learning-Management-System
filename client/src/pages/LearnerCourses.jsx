@@ -6,6 +6,11 @@ const LearnerCourses = () => {
   const [myTransactions, setMyTransactions] = useState([]); 
   const [loading, setLoading] = useState(true);
 
+  // --- Modal States ---
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState(null); 
+
   const user = JSON.parse(sessionStorage.getItem('user'));
 
   useEffect(() => {
@@ -33,36 +38,53 @@ const LearnerCourses = () => {
     } catch(err) { console.error(err); }
   };
 
-  const handleBuy = async (courseId, price) => {
+  // 1. Open Modal
+  const initiateBuy = (courseId, price) => {
       if(!user) return alert("Please login first");
-      
-      const confirm = window.confirm(`Confirm purchase for ৳${price}?`);
-      if(!confirm) return;
+      setSelectedCourse({ id: courseId, price });
+      setPinInput('');
+      setShowPayModal(true);
+  };
+
+  // 2. Confirm & Pay
+  const confirmPurchase = async (e) => {
+      e.preventDefault();
+      if(!pinInput) return alert("Please enter your PIN");
 
       try {
           await axios.post('http://localhost:5000/api/learner/buy', {
               learnerId: user.id,
-              courseId: courseId
+              courseId: selectedCourse.id,
+              learnerSecret: pinInput 
           });
-          alert("Order Placed! Money deducted. Waiting for Admin Approval.");
-          fetchMyStatus(); 
+          alert("✅ Order Placed! Money deducted. Waiting for Admin Approval.");
+          setShowPayModal(false);
+          fetchMyStatus(); // Refresh to see "Pending"
       } catch (err) {
-          alert("Purchase Failed: " + (err.response?.data?.message || err.message));
+          alert("❌ Purchase Failed: " + (err.response?.data?.message || err.message));
       }
   };
 
+  // --- FIX: PRIORITY LOGIC ---
   const getButtonState = (courseId) => {
-      const tx = myTransactions.find(t => t.courseId === courseId);
-      if (!tx) return 'buy'; 
-      if (tx.status === 'completed') return 'owned';
-      if (tx.status === 'pending_admin') return 'waiting_admin';
-      if (tx.status === 'pending_instructor') return 'waiting_instructor';
-      if (tx.status === 'declined' || tx.status === 'declined_admin' || tx.status === 'declined_instructor') return 'declined';
+      // Get ALL transactions for this specific course
+      const courseTxs = myTransactions.filter(t => t.courseId === courseId);
+      
+      // 1. Priority: OWNED (If any transaction is completed, you own it)
+      if (courseTxs.some(t => t.status === 'completed')) return 'owned';
+      
+      // 2. Priority: PENDING (If any transaction is pending, you are waiting)
+      if (courseTxs.some(t => t.status.includes('pending'))) return 'pending';
+      
+      // 3. Priority: DECLINED (Only if NO pending and NO completed items exist)
+      if (courseTxs.some(t => t.status.includes('declined'))) return 'declined';
+      
+      // 4. Default
       return 'buy';
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10">
+    <div className="max-w-6xl mx-auto mt-10 relative">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">Available Courses</h1>
         {user && (
@@ -100,17 +122,18 @@ const LearnerCourses = () => {
                         <div className="flex justify-between items-center mt-auto border-t border-gray-700 pt-4">
                             <span className="text-2xl font-bold text-white">৳{course.price}</span>
                             
+                            {/* BUTTON LOGIC */}
                             {status === 'buy' || status === 'declined' ? (
                                 <button 
-                                    onClick={() => handleBuy(course._id, course.price)} 
+                                    onClick={() => initiateBuy(course._id, course.price)} 
                                     className={`text-white px-4 py-2 rounded font-bold transition ${status === 'declined' ? 'bg-red-600 hover:bg-red-500' : 'bg-accent-500 hover:bg-indigo-600'}`}
                                 >
                                     {status === 'declined' ? 'Retry' : 'Buy Course'}
                                 </button>
-                            ) : status === 'waiting_admin' ? (
-                                <button disabled className="bg-yellow-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">Pending Confirmation</button>
-                            ) : status === 'waiting_instructor' ? (
-                                <button disabled className="bg-blue-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">Pending Confirmation</button>
+                            ) : status === 'pending' ? (
+                                <button disabled className="bg-yellow-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">
+                                    Pending Confirmation
+                                </button>
                             ) : (
                                 <button className="bg-green-600 text-white px-4 py-2 rounded font-bold cursor-default">Start Learning</button>
                             )}
@@ -121,6 +144,34 @@ const LearnerCourses = () => {
           })}
         </div>
       )}
+
+      {/* --- PAYMENT MODAL --- */}
+      {showPayModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-dark-800 p-8 rounded-xl border border-gray-700 shadow-2xl w-full max-w-md transform transition-all scale-100">
+                <h3 className="text-xl font-bold text-white mb-2">💸 Confirm Payment</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                    Enter your Secret PIN to confirm payment of <b className="text-green-400">৳{selectedCourse?.price}</b>.
+                </p>
+                
+                <form onSubmit={confirmPurchase}>
+                    <input 
+                        type="password" 
+                        placeholder="Enter Secret PIN" 
+                        className="input-field mb-6 text-center text-lg tracking-widest"
+                        autoFocus
+                        value={pinInput}
+                        onChange={e => setPinInput(e.target.value)}
+                    />
+                    <div className="flex gap-3">
+                        <button type="button" onClick={() => setShowPayModal(false)} className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Cancel</button>
+                        <button type="submit" className="flex-1 py-3 bg-accent-500 hover:bg-indigo-600 text-white rounded-lg font-bold shadow-lg">Pay Now</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -44,24 +44,24 @@ router.get('/available-courses', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. GET My Transaction Status
+// 2. GET My Transaction Status (UPDATED: Sorted Newest First)
 router.get('/my-status/:learnerId', async (req, res) => {
     try {
-        const txs = await Transaction.find({ learnerId: req.params.learnerId });
+        // .sort({ createdAt: -1 }) ensures the newest retry appears first
+        const txs = await Transaction.find({ learnerId: req.params.learnerId }).sort({ createdAt: -1 });
         res.json(txs);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. BUY COURSE
+// 3. BUY COURSE (Secure: Requires Secret PIN)
 router.post('/buy', async (req, res) => {
-  const { learnerId, courseId } = req.body; 
+  const { learnerId, courseId, learnerSecret } = req.body; 
 
-  if (!learnerId || !courseId) {
-      return res.status(400).json({ message: "Missing required fields" });
+  if (!learnerId || !courseId || !learnerSecret) {
+      return res.status(400).json({ message: "Missing required fields or Secret PIN." });
   }
 
   try {
-    // A. Check Learner
     const learner = await User.findById(learnerId);
     if (!learner) return res.status(404).json({ message: "Learner user not found" });
     
@@ -69,34 +69,32 @@ router.post('/buy', async (req, res) => {
         return res.status(400).json({ message: "No bank account linked. Please Logout and Login to setup." });
     }
 
-    // B. Get Learner Bank
     const learnerBank = await Bank.findById(learner.bankAccountId);
     if (!learnerBank) {
         return res.status(404).json({ message: "Your Bank Account is corrupted. Please contact support." });
     }
 
-    // C. Get Admin Bank
+    if (learnerBank.secret !== learnerSecret) {
+        return res.status(401).json({ message: "Invalid Bank PIN! Purchase denied." });
+    }
+
     const adminBank = await getAdminBank(); 
 
-    // D. Get Course & Use Database Price
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
 
     const numericPrice = course.price; 
 
-    // E. Validate Balance
     if (learnerBank.balance < numericPrice) {
         return res.status(400).json({ message: `Insufficient Balance! You have ৳${learnerBank.balance}, Course is ৳${numericPrice}` });
     }
 
-    // F. EXECUTE TRANSFER (Learner -> Admin)
     learnerBank.balance -= numericPrice;
     adminBank.balance += numericPrice;
 
     await learnerBank.save();
     await adminBank.save();
 
-    // G. Create Transaction Record
     const newTx = new Transaction({
         learnerId,
         courseId,
