@@ -8,22 +8,24 @@ const Home = () => {
   const [bankData, setBankData] = useState({ accountNumber: '', secret: '' });
   
   useEffect(() => {
-    // 1. Get user from Session Storage
     const storedUserStr = sessionStorage.getItem('user');
     
     if (storedUserStr) {
       const parsedUser = JSON.parse(storedUserStr);
       setUser(parsedUser);
 
-      // --- REDIRECT LOGIC ---
-      // If Admin -> Go to Admin Panel
+      // --- REDIRECTS ---
       if (parsedUser.role === 'lms-admin') {
         navigate('/admin');
         return;
       }
-      // If Instructor -> Go DIRECTLY to Instructor Dashboard (Skip Home)
       if (parsedUser.role === 'instructor') {
         navigate('/instructor');
+        return;
+      }
+      // NEW: Send Learner directly to courses
+      if (parsedUser.role === 'learner') {
+        navigate('/courses');
         return;
       }
     }
@@ -42,11 +44,11 @@ const Home = () => {
       sessionStorage.setItem('user', JSON.stringify(updatedUser)); 
       setUser(updatedUser);
       
-      // Immediate Redirect after Bank Setup
       if (updatedUser.role === 'instructor') {
           navigate('/instructor');
       } else {
-          alert("Bank Setup Complete! You received $5000 bonus.");
+          alert("Bank Setup Complete! You received ৳5000 bonus.");
+          navigate('/courses'); // Redirect learner after bank setup too
       }
 
     } catch (err) {
@@ -112,32 +114,8 @@ const Home = () => {
     );
   }
 
-  // 3. Learner View (Instructors are redirected, so they won't see this)
-  return (
-    <div className="max-w-4xl mx-auto mt-10">
-      <div className="bg-dark-800 p-10 rounded-2xl shadow-glow text-center border border-gray-800">
-        <h1 className="text-4xl font-bold mb-4">Welcome, {user.name}</h1>
-        <p className="text-gray-400 mb-8">You are logged in as <span className="text-accent-500 uppercase font-bold">{user.role}</span></p>
-        
-        <div className="grid grid-cols-1 gap-6 max-w-md mx-auto">
-          {/* Only showing Learner Options */}
-          {user.role === 'learner' && (
-            <>
-              <Link to="/courses" className="p-6 bg-dark-900 rounded-xl border border-gray-700 hover:border-accent-500 transition group">
-                <h3 className="text-xl font-bold group-hover:text-accent-500">Browse Courses</h3>
-                <p className="text-sm text-gray-500 mt-2">Buy courses and view certificates.</p>
-              </Link>
-              
-              <div className="p-6 bg-dark-900 rounded-xl border border-gray-700 hover:border-green-500 transition group cursor-pointer" onClick={() => alert("Check Dashboard for balance")}>
-                 <h3 className="text-xl font-bold group-hover:text-green-500">Bank Status</h3>
-                 <p className="text-sm text-gray-500 mt-2">Account: Active</p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // 3. Fallback (Should not be reached often due to redirects)
+  return null; 
 };
 
 export default Home;

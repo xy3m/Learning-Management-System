@@ -12,24 +12,27 @@ router.get('/pending-courses', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. APPROVE COURSE (Modified: Includes $1000 Payment)
+// 2. APPROVE COURSE (Secure: Requires Secret PIN & Pays Bonus)
 router.put('/approve/:courseId', async (req, res) => {
+  const { adminSecret } = req.body; 
+
+  if (!adminSecret) {
+      return res.status(400).json({ message: "Admin Secret PIN is required to authorize payment." });
+  }
+
   try {
     const course = await Course.findById(req.params.courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
     
-    // Prevent double payment
     if (course.status === 'approved') {
         return res.status(400).json({ message: "Course is already approved." });
     }
 
-    // A. Get Admin & Instructor
     const admin = await User.findOne({ role: 'lms-admin' });
     const instructor = await User.findById(course.instructorId);
 
     if (!admin || !instructor) return res.status(404).json({ message: "User data missing." });
 
-    // B. Get Bank Accounts
     const adminBank = await Bank.findById(admin.bankAccountId);
     const instructorBank = await Bank.findById(instructor.bankAccountId);
 
@@ -37,30 +40,33 @@ router.put('/approve/:courseId', async (req, res) => {
         return res.status(404).json({ message: "Bank accounts not linked." });
     }
 
-    // C. Validation: Does Admin have $1000?
+    // --- SECURITY CHECK ---
+    if (adminBank.secret !== adminSecret) {
+        return res.status(401).json({ message: "Invalid Secret PIN! Authorization failed." });
+    }
+
+    // --- BONUS PAYMENT (৳1000) ---
     const BONUS_AMOUNT = 1000;
     if (adminBank.balance < BONUS_AMOUNT) {
         return res.status(400).json({ message: "Admin Vault has insufficient funds to pay approval bonus." });
     }
 
-    // D. Transfer Money
     adminBank.balance -= BONUS_AMOUNT;
     instructorBank.balance += BONUS_AMOUNT;
 
-    // E. Approve Course
+    // Approve Course
     course.status = 'approved';
 
-    // F. Save Everything
     await adminBank.save();
     await instructorBank.save();
     await course.save();
 
-    res.json({ message: "Content Approved! Sent $1000 Bonus to Instructor." });
+    res.json({ message: "Success! Verified PIN, Sent ৳1000, and Approved Course." });
 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. Decline Course Content
+// 3. DECLINE COURSE CONTENT
 router.put('/decline/:courseId', async (req, res) => {
   try {
     const course = await Course.findById(req.params.courseId);
@@ -71,7 +77,7 @@ router.put('/decline/:courseId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 4. Get All Transactions
+// 4. GET ALL TRANSACTIONS (Filtered for Soft Delete)
 router.get('/transactions', async (req, res) => {
   try {
     const txs = await Transaction.find({
@@ -84,7 +90,7 @@ router.get('/transactions', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. ADMIN ACTION on Transaction
+// 5. ADMIN ACTION on Transaction (Approve Purchase or Refund)
 router.post('/transaction-action', async (req, res) => {
     const { transactionId, action } = req.body; 
 
@@ -105,6 +111,7 @@ router.post('/transaction-action', async (req, res) => {
             const learnerBank = await Bank.findById(learner.bankAccountId);
             const adminBank = await Bank.findById(admin.bankAccountId);
 
+            // Refund Logic
             adminBank.balance -= tx.amount;
             learnerBank.balance += tx.amount;
 
@@ -120,7 +127,7 @@ router.post('/transaction-action', async (req, res) => {
     }
 });
 
-// 6. ADMIN CLEAR HISTORY
+// 6. ADMIN CLEAR HISTORY (Soft Delete)
 router.delete('/clear-history', async (req, res) => {
     try {
         await Transaction.updateMany(

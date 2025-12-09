@@ -31,13 +31,12 @@ router.post('/upload', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. UPDATE Existing Course (Protected)
+// 2. UPDATE Existing Course (Protected: Can't edit Approved)
 router.put('/update/:courseId', async (req, res) => {
     try {
         const courseToCheck = await Course.findById(req.params.courseId);
         if (!courseToCheck) return res.status(404).json({ message: "Course not found" });
         
-        // --- PROTECTION ---
         if (courseToCheck.status === 'approved') {
             return res.status(403).json({ message: "Cannot edit an approved course." });
         }
@@ -84,7 +83,6 @@ router.delete('/delete/:courseId', async (req, res) => {
       const course = await Course.findById(req.params.courseId);
       if (!course) return res.status(404).json({ message: "Not found" });
 
-      // --- PROTECTION ---
       if (course.status === 'approved') {
           return res.status(403).json({ message: "Cannot delete an approved course." });
       }
@@ -100,7 +98,8 @@ router.delete('/delete/:courseId', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- TRANSACTION HISTORY ---
+// --- TRANSACTION HISTORY LOGIC ---
+
 router.get('/my-history/:instructorId', async (req, res) => {
     try {
         const txs = await Transaction.find({ 
@@ -139,7 +138,7 @@ router.post('/transaction-action', async (req, res) => {
             await adminBank.save();
             await instructorBank.save();
             await tx.save();
-            return res.json({ message: `Approved! You received $${instructorShare}.` });
+            return res.json({ message: `Approved! You received ৳${instructorShare}.` });
         } 
         else {
             adminBank.balance -= tx.amount;
@@ -153,6 +152,7 @@ router.post('/transaction-action', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- CLEAR HISTORY (Soft Delete) ---
 router.delete('/clear-history/:instructorId', async (req, res) => {
     try {
         await Transaction.updateMany(

@@ -17,6 +17,11 @@ const AdminDashboard = () => {
   const [viewingClass, setViewingClass] = useState(null); 
   const [viewingCourseTitle, setViewingCourseTitle] = useState(''); 
 
+  // Security Modal States
+  const [showSecretModal, setShowSecretModal] = useState(false);
+  const [secretInput, setSecretInput] = useState('');
+  const [approvingCourseId, setApprovingCourseId] = useState(null);
+
   const user = JSON.parse(sessionStorage.getItem('user'));
 
   useEffect(() => {
@@ -55,19 +60,29 @@ const AdminDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
-  // Inside AdminDashboard.jsx
+  const initiateApproval = (courseId) => {
+      setApprovingCourseId(courseId);
+      setSecretInput('');
+      setShowSecretModal(true);
+  };
 
-const handleApproveContent = async (courseId) => {
-  try {
-    await axios.put(`http://localhost:5000/api/admin/approve/${courseId}`);
-    alert("Content Approved! $1000 Bonus sent to Instructor.");
-    
-    fetchPendingCourses(); // Refresh list
-    fetchBalance();        // <--- ADD THIS LINE to update the $ number instantly
-  } catch (err) { 
-    alert(err.response?.data?.message || "Approval failed."); 
-  }
-};
+  const confirmApproval = async (e) => {
+    e.preventDefault();
+    if (!secretInput) return alert("Please enter the PIN.");
+
+    try {
+      await axios.put(`http://localhost:5000/api/admin/approve/${approvingCourseId}`, {
+          adminSecret: secretInput
+      });
+      
+      alert("✅ Verified! Content Approved & ৳1000 Sent.");
+      setShowSecretModal(false); 
+      fetchPendingCourses(); 
+      fetchBalance(); 
+    } catch (err) { 
+      alert("❌ Approval Failed: " + (err.response?.data?.message || err.message)); 
+    }
+  };
 
   const handleDeclineContent = async (courseId) => {
     if(!window.confirm("Are you sure you want to DECLINE this course?")) return;
@@ -123,16 +138,15 @@ const handleApproveContent = async (courseId) => {
   return (
     <div className="max-w-6xl mx-auto mt-10 flex flex-col items-center pb-20 relative">
       
-      {/* HEADER WITH BALANCE */}
+      {/* HEADER */}
       <div className="w-full bg-dark-800 p-8 rounded-xl shadow-glow mb-8 flex justify-between items-center border border-gray-700">
         <div>
           <h1 className="text-3xl font-bold text-white">LMS Admin Panel</h1>
           <p className="text-gray-400">System Management</p>
         </div>
-        
         <div className="text-right">
           <p className="text-sm text-gray-400 uppercase tracking-widest">Bank Balance</p>
-          <p className="text-4xl font-mono text-accent-500 font-bold mt-2">${balance}</p>
+          <p className="text-4xl font-mono text-accent-500 font-bold mt-2">৳{balance}</p>
         </div>
       </div>
 
@@ -167,12 +181,7 @@ const handleApproveContent = async (courseId) => {
                                         </div>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => handleDeleteInstructor(inst._id)}
-                                    className="text-xs bg-red-900/50 text-red-400 border border-red-900 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition"
-                                >
-                                    Remove
-                                </button>
+                                <button onClick={() => handleDeleteInstructor(inst._id)} className="text-xs bg-red-900/50 text-red-400 border border-red-900 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition">Remove</button>
                             </div>
                         </div>
                     ))
@@ -200,27 +209,18 @@ const handleApproveContent = async (courseId) => {
                   <div>
                     <h3 className="text-2xl font-bold text-white">{course.title}</h3>
                     <p className="text-sm text-gray-400">Instructor: <span className="text-accent-500">{course.instructorId?.name}</span></p>
-                    <p className="text-sm text-gray-400">Price: ${course.price}</p>
+                    <p className="text-sm text-gray-400">Price: ৳{course.price}</p>
                     <p className="text-xs text-gray-500 mt-1">{course.classes.length} Classes</p>
                   </div>
                   <div className="flex gap-2">
-                      <button onClick={() => handleApproveContent(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
-                        Approve Content
-                      </button>
-                      <button onClick={() => handleDeclineContent(course._id)} className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">
-                        Decline
-                      </button>
+                      <button onClick={() => initiateApproval(course._id)} className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">Approve Content</button>
+                      <button onClick={() => handleDeclineContent(course._id)} className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition">Decline</button>
                   </div>
                 </div>
                 
                 <div className="space-y-2 mt-2">
                     {course.classes.map((cls, idx) => (
-                        <div 
-                            key={idx} 
-                            // UPDATED: Save the index (_idx) to force re-render when switching classes
-                            onClick={() => { setViewingClass({ ...cls, _idx: idx }); setViewingCourseTitle(course.title); }}
-                            className="bg-dark-900 p-3 rounded text-sm text-gray-400 cursor-pointer hover:bg-dark-700 hover:text-white transition border border-transparent hover:border-gray-600 flex justify-between"
-                        >
+                        <div key={idx} onClick={() => { setViewingClass({ ...cls, _idx: idx }); setViewingCourseTitle(course.title); }} className="bg-dark-900 p-3 rounded text-sm text-gray-400 cursor-pointer hover:bg-dark-700 hover:text-white transition border border-transparent hover:border-gray-600 flex justify-between">
                             <span>Class {idx+1}: {cls.video ? 'Has Video' : 'No Video'}</span>
                             <span className="text-accent-500 text-xs">Click to Preview</span>
                         </div>
@@ -242,52 +242,25 @@ const handleApproveContent = async (courseId) => {
                   </div>
 
                   <div className="space-y-6">
-                      {/* Video with Robust Key */}
                       <div>
                           <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Video Material</h3>
-                          {viewingClass.video ? (
-                              <video 
-                                key={`${viewingClass._idx}-${viewingClass.video}`} // <--- ROBUST KEY FIX
-                                src={viewingClass.video} 
-                                controls 
-                                preload="auto" // <--- ADDED PRELOAD
-                                className="w-full rounded-lg border border-gray-700" 
-                              />
-                          ) : <p className="text-red-500 text-sm">No Video Uploaded</p>}
+                          {viewingClass.video ? <video key={`${viewingClass._idx}-${viewingClass.video}`} src={viewingClass.video} controls preload="auto" className="w-full rounded-lg border border-gray-700" /> : <p className="text-red-500 text-sm">No Video Uploaded</p>}
                       </div>
-
-                      {/* Audio */}
                       <div>
                           <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Audio Material</h3>
-                          {viewingClass.audio ? (
-                              <audio 
-                                key={`${viewingClass._idx}-${viewingClass.audio}`} 
-                                src={viewingClass.audio} 
-                                controls 
-                                className="w-full" 
-                              />
-                          ) : <p className="text-gray-600 text-sm">No Audio Uploaded</p>}
+                          {viewingClass.audio ? <audio key={`${viewingClass._idx}-${viewingClass.audio}`} src={viewingClass.audio} controls className="w-full" /> : <p className="text-gray-600 text-sm">No Audio Uploaded</p>}
                       </div>
-
-                      {/* Text */}
                       <div>
                           <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">Reading Material</h3>
-                          <div className="bg-dark-800 p-4 rounded border border-gray-800 text-gray-300 text-sm whitespace-pre-wrap">
-                              {viewingClass.text || "No text content provided."}
-                          </div>
+                          <div className="bg-dark-800 p-4 rounded border border-gray-800 text-gray-300 text-sm whitespace-pre-wrap">{viewingClass.text || "No text content provided."}</div>
                       </div>
-
-                      {/* MCQs */}
                       <div>
                           <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">MCQs ({viewingClass.mcq.length})</h3>
-                          {viewingClass.mcq.length === 0 ? <p className="text-gray-600 text-sm">No MCQs</p> : 
-                             viewingClass.mcq.map((q, i) => (
+                          {viewingClass.mcq.length === 0 ? <p className="text-gray-600 text-sm">No MCQs</p> : viewingClass.mcq.map((q, i) => (
                                  <div key={i} className="mb-4 bg-dark-800 p-3 rounded border border-gray-800">
                                      <p className="font-bold text-white mb-2">{i+1}. {q.question}</p>
                                      <ul className="list-disc pl-5 text-sm text-gray-400">
-                                         {q.options.map((opt, oid) => (
-                                             <li key={oid} className={opt === q.answer ? "text-green-400 font-bold" : ""}>{opt}</li>
-                                         ))}
+                                         {q.options.map((opt, oid) => (<li key={oid} className={opt === q.answer ? "text-green-400 font-bold" : ""}>{opt}</li>))}
                                      </ul>
                                      <p className="text-xs text-gray-500 mt-2">Answer: {q.answer}</p>
                                  </div>
@@ -295,7 +268,6 @@ const handleApproveContent = async (courseId) => {
                           }
                       </div>
                   </div>
-                  
                   <button onClick={() => setViewingClass(null)} className="w-full mt-8 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded font-bold">Close Preview</button>
               </div>
           )}
@@ -307,14 +279,7 @@ const handleApproveContent = async (courseId) => {
         <div className="w-full max-w-4xl bg-dark-800 p-6 rounded-xl border border-gray-700">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-white">Transaction History</h2>
-                {transactions.length > 0 && (
-                    <button 
-                        onClick={handleClearHistory} 
-                        className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition"
-                    >
-                        Clear History
-                    </button>
-                )}
+                {transactions.length > 0 && <button onClick={handleClearHistory} className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition">Clear History</button>}
             </div>
 
             {transactions.length === 0 ? <p className="text-gray-500 text-center">No transactions found.</p> : (
@@ -324,19 +289,15 @@ const handleApproveContent = async (courseId) => {
                             <div>
                                 <p className="text-white font-bold">{tx.courseId?.title || "Unknown Course"}</p>
                                 <p className="text-sm text-gray-400">Learner: {tx.learnerId?.name}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'Date unavailable'}
-                                </p>
+                                <p className="text-xs text-gray-500 mt-1">Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'Date unavailable'}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-xl font-bold text-white">${tx.amount}</p>
+                                <p className="text-xl font-bold text-white">৳{tx.amount}</p>
                                 <span className={`text-xs px-2 py-1 rounded uppercase block mb-2 ${
                                     tx.status === 'completed' ? 'text-green-500 bg-green-900' :
                                     tx.status.includes('pending') ? 'text-yellow-500 bg-yellow-900' : 
                                     tx.status.includes('declined') ? 'text-red-500 bg-red-900' : 'text-gray-500'
-                                }`}>
-                                    {tx.status.replace('_', ' ')}
-                                </span>
+                                }`}>{tx.status.replace('_', ' ')}</span>
                                 
                                 {tx.status === 'pending_admin' && (
                                     <div className="flex gap-2 justify-end">
@@ -349,6 +310,23 @@ const handleApproveContent = async (courseId) => {
                     ))}
                 </div>
             )}
+        </div>
+      )}
+
+      {/* --- SECURITY CHECK MODAL --- */}
+      {showSecretModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-dark-800 p-8 rounded-xl border border-gray-700 shadow-2xl w-full max-w-md transform transition-all scale-100">
+                <h3 className="text-xl font-bold text-white mb-2">🔐 Security Check</h3>
+                <p className="text-gray-400 text-sm mb-6">Enter Admin Secret PIN to authorize the <b>৳1000</b> payment to the instructor.</p>
+                <form onSubmit={confirmApproval}>
+                    <input type="password" placeholder="Enter Secret PIN" className="input-field mb-6 text-center text-lg tracking-widest" autoFocus value={secretInput} onChange={e => setSecretInput(e.target.value)} />
+                    <div className="flex gap-3">
+                        <button type="button" onClick={() => setShowSecretModal(false)} className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Cancel</button>
+                        <button type="submit" className="flex-1 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold shadow-lg">Confirm Payment</button>
+                    </div>
+                </form>
+            </div>
         </div>
       )}
 

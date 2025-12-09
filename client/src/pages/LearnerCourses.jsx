@@ -3,10 +3,9 @@ import axios from 'axios';
 
 const LearnerCourses = () => {
   const [courses, setCourses] = useState([]);
-  const [myTransactions, setMyTransactions] = useState([]); // Store purchase history
+  const [myTransactions, setMyTransactions] = useState([]); 
   const [loading, setLoading] = useState(true);
 
-  // Get user from session
   const user = JSON.parse(sessionStorage.getItem('user'));
 
   useEffect(() => {
@@ -37,11 +36,10 @@ const LearnerCourses = () => {
   const handleBuy = async (courseId, price) => {
       if(!user) return alert("Please login first");
       
-      const confirm = window.confirm(`Confirm purchase for $${price}?`);
+      const confirm = window.confirm(`Confirm purchase for ৳${price}?`);
       if(!confirm) return;
 
       try {
-          // We still send price for logging, but backend now uses DB price
           await axios.post('http://localhost:5000/api/learner/buy', {
               learnerId: user.id,
               courseId: courseId
@@ -53,16 +51,13 @@ const LearnerCourses = () => {
       }
   };
 
-  // Helper to determine button state
   const getButtonState = (courseId) => {
-      // Find the latest transaction for this course
       const tx = myTransactions.find(t => t.courseId === courseId);
-      
-      if (!tx) return 'buy'; // No transaction exists
+      if (!tx) return 'buy'; 
       if (tx.status === 'completed') return 'owned';
       if (tx.status === 'pending_admin') return 'waiting_admin';
       if (tx.status === 'pending_instructor') return 'waiting_instructor';
-      if (tx.status === 'declined') return 'declined'; // Can try buying again
+      if (tx.status === 'declined' || tx.status === 'declined_admin' || tx.status === 'declined_instructor') return 'declined';
       return 'buy';
   };
 
@@ -94,39 +89,30 @@ const LearnerCourses = () => {
                 <div key={course._id} className="bg-dark-800 rounded-xl border border-gray-700 overflow-hidden hover:border-accent-500 transition shadow-lg flex flex-col">
                     <div className="h-32 bg-gradient-to-r from-indigo-900 to-purple-900 flex items-center justify-center relative">
                         <span className="text-4xl">🎓</span>
-                        {/* Status Badge on Image */}
                         {status === 'owned' && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">OWNED</div>}
                     </div>
                     
                     <div className="p-6 flex-1 flex flex-col">
                         <h3 className="text-xl font-bold text-white mb-2">{course.title}</h3>
                         <p className="text-sm text-accent-500 mb-4">By {course.instructorId?.name || 'Instructor'}</p>
-                        
                         <p className="text-gray-400 text-sm mb-6 flex-1 line-clamp-3">{course.description}</p>
                         
                         <div className="flex justify-between items-center mt-auto border-t border-gray-700 pt-4">
-                            <span className="text-2xl font-bold text-white">${course.price}</span>
+                            <span className="text-2xl font-bold text-white">৳{course.price}</span>
                             
-                            {/* DYNAMIC BUTTONS */}
                             {status === 'buy' || status === 'declined' ? (
                                 <button 
                                     onClick={() => handleBuy(course._id, course.price)} 
                                     className={`text-white px-4 py-2 rounded font-bold transition ${status === 'declined' ? 'bg-red-600 hover:bg-red-500' : 'bg-accent-500 hover:bg-indigo-600'}`}
                                 >
-                                    {status === 'declined' ? 'Declined (Retry)' : 'Buy Course'}
+                                    {status === 'declined' ? 'Retry' : 'Buy Course'}
                                 </button>
                             ) : status === 'waiting_admin' ? (
-                                <button disabled className="bg-yellow-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">
-                                    Waiting Admin
-                                </button>
+                                <button disabled className="bg-yellow-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">Pending Confirmation</button>
                             ) : status === 'waiting_instructor' ? (
-                                <button disabled className="bg-blue-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">
-                                    Waiting Instructor
-                                </button>
+                                <button disabled className="bg-blue-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">Pending Confirmation</button>
                             ) : (
-                                <button className="bg-green-600 text-white px-4 py-2 rounded font-bold cursor-default">
-                                    Start Learning
-                                </button>
+                                <button className="bg-green-600 text-white px-4 py-2 rounded font-bold cursor-default">Start Learning</button>
                             )}
                         </div>
                     </div>

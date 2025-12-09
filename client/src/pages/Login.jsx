@@ -12,9 +12,16 @@ const Login = () => {
       const res = await axios.post('http://localhost:5000/api/auth/login', formData);
       sessionStorage.setItem('token', res.data.token);
       sessionStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/');
+      
+      // --- UPDATED REDIRECT LOGIC ---
+      if (res.data.user.role === 'learner') {
+          navigate('/courses');
+      } else {
+          // Admin & Instructor are handled by Home.jsx or their specific routes
+          navigate('/'); 
+      }
     } catch (err) {
-      alert("Login Failed");
+      alert("Login Failed: " + (err.response?.data?.message || "Check credentials"));
     }
   };
 

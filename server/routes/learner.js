@@ -82,12 +82,11 @@ router.post('/buy', async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
 
-    // USE DB PRICE
     const numericPrice = course.price; 
 
     // E. Validate Balance
     if (learnerBank.balance < numericPrice) {
-        return res.status(400).json({ message: `Insufficient Balance! You have $${learnerBank.balance}, Course is $${numericPrice}` });
+        return res.status(400).json({ message: `Insufficient Balance! You have ৳${learnerBank.balance}, Course is ৳${numericPrice}` });
     }
 
     // F. EXECUTE TRANSFER (Learner -> Admin)
@@ -107,8 +106,6 @@ router.post('/buy', async (req, res) => {
     });
 
     await newTx.save();
-
-    // TIMER REMOVED HERE - No more auto refunds.
 
     res.json({ message: "Order Placed! Money deducted. Waiting for Admin Approval." });
 
