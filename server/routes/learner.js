@@ -62,7 +62,16 @@ router.get('/course/:courseId/:learnerId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. UPDATE PROGRESS
+// 3. NEW: GET LEARNER PROGRESS (For Dashboard Button Status)
+router.get('/my-progress/:learnerId', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.learnerId).select('enrolledCourses');
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json(user.enrolledCourses);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 4. UPDATE PROGRESS
 router.post('/progress', async (req, res) => {
     const { learnerId, courseId, classIndex } = req.body;
     try {
@@ -82,7 +91,7 @@ router.post('/progress', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 4. SUBMIT QUIZ SCORE
+// 5. SUBMIT QUIZ SCORE
 router.post('/submit-quiz', async (req, res) => {
     const { learnerId, courseId, classIndex, score, passed } = req.body;
     try {
@@ -102,103 +111,51 @@ router.post('/submit-quiz', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. GENERATE CERTIFICATE (Dark Theme & Stylish)
+// 6. GENERATE CERTIFICATE
 router.get('/certificate/:courseId/:learnerId', async (req, res) => {
     try {
         const course = await Course.findById(req.params.courseId).populate('instructorId', 'name');
         const user = await User.findById(req.params.learnerId);
         
-        const doc = new PDFDocument({
-            layout: 'landscape',
-            size: 'A4',
-            margin: 0 // Full bleed for background
-        });
+        const doc = new PDFDocument({ layout: 'landscape', size: 'A4', margin: 0 });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=Certificate-${course.title}.pdf`);
         doc.pipe(res);
 
-        // --- 1. BACKGROUND (Dark Theme) ---
-        doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212'); // Main Dark BG
+        // BG
+        doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212');
 
-        // --- 2. ABSTRACT SHAPES (Top Right Corner) ---
-        doc.save(); // Save state
-        
-        // Shape 1 (Yellow)
-        doc.path('M 600 0 Q 750 100 842 0') 
-           .lineTo(doc.page.width, 0)
-           .lineTo(doc.page.width, 300)
-           .bezierCurveTo(750, 350, 650, 100, 600, 0)
-           .fill('#FCD34D'); // Yellow-400
+        // Shapes
+        doc.save();
+        doc.path('M 600 0 Q 750 100 842 0').lineTo(doc.page.width, 0).lineTo(doc.page.width, 300).bezierCurveTo(750, 350, 650, 100, 600, 0).fill('#FCD34D');
+        doc.circle(doc.page.width, 150, 180).fillOpacity(0.9).fill('#10B981');
+        doc.circle(doc.page.width - 50, 300, 120).fillOpacity(0.9).fill('#6366F1');
+        doc.restore();
 
-        // Shape 2 (Green)
-        doc.circle(doc.page.width, 150, 180)
-           .fillOpacity(0.9)
-           .fill('#10B981'); // Green-500
-
-        // Shape 3 (Blue/Accent)
-        doc.circle(doc.page.width - 50, 300, 120)
-           .fillOpacity(0.9)
-           .fill('#6366F1'); // Indigo-500 (Accent)
-
-        doc.restore(); // Restore state so text isn't clipped/colored
-
-        // --- 3. BORDER FRAME ---
+        // Frame
         const margin = 30;
-        doc.rect(margin, margin, doc.page.width - (margin*2), doc.page.height - (margin*2))
-           .strokeColor('#333333')
-           .lineWidth(3)
-           .stroke();
+        doc.rect(margin, margin, doc.page.width - (margin*2), doc.page.height - (margin*2)).strokeColor('#333333').lineWidth(3).stroke();
 
-        // --- 4. CONTENT (Left Aligned) ---
-        const startX = 80; // Left padding for text
-
-        // LOGO
-        doc.fontSize(30).fillColor('#6366F1').font('Helvetica-Bold')
-           .text('LMS.SIM', startX, 70);
-
-        // Header Title
-        doc.fontSize(10).fillColor('#9CA3AF').font('Helvetica') // Gray-400
-           .text('CERTIFICATE OF COMPLETION', startX, 120, { letterSpacing: 2 });
-
-        // Learner Name (Huge)
-        doc.fontSize(45).fillColor('#FFFFFF').font('Helvetica-Bold')
-           .text(user.name, startX, 140);
-
-        // Subtext
-        doc.fontSize(12).fillColor('#9CA3AF').font('Helvetica')
-           .text('SUCCESSFULLY COMPLETED THE COURSE', startX, 210, { letterSpacing: 1 });
-
-        // Course Title (Large)
-        doc.fontSize(30).fillColor('#FFFFFF').font('Helvetica-Bold')
-           .text(course.title, startX, 235, { width: 500 }); // Limit width to avoid hitting shapes
-
-        // Line Separator
+        // Text
+        const startX = 80;
+        doc.fontSize(30).fillColor('#6366F1').font('Helvetica-Bold').text('LMS.SIM', startX, 70);
+        doc.fontSize(10).fillColor('#9CA3AF').font('Helvetica').text('CERTIFICATE OF COMPLETION', startX, 120, { letterSpacing: 2 });
+        doc.fontSize(45).fillColor('#FFFFFF').font('Helvetica-Bold').text(user.name, startX, 140);
+        doc.fontSize(12).fillColor('#9CA3AF').font('Helvetica').text('SUCCESSFULLY COMPLETED THE COURSE', startX, 210, { letterSpacing: 1 });
+        doc.fontSize(30).fillColor('#FFFFFF').font('Helvetica-Bold').text(course.title, startX, 235, { width: 500 });
         doc.moveTo(startX, 350).lineTo(startX + 300, 350).strokeColor('#4B5563').lineWidth(1).stroke();
-
-        // Footer Info (Instructor & Date)
-        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold') // Gray-300
-           .text('INSTRUCTOR', startX, 370);
-        
-        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica')
-           .text(course.instructorId.name, startX, 385);
-
-        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold')
-           .text('DATE ISSUED', startX + 200, 370); // Offset to the right
-        
-        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica')
-           .text(new Date().toLocaleDateString(), startX + 200, 385);
-
-        // ID (Bottom Left, small)
-        doc.fontSize(8).fillColor('#374151') // Gray-700 (Very dark gray)
-           .text(`Certificate ID: ${course._id}-${user._id}`, startX, doc.page.height - 60);
+        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold').text('INSTRUCTOR', startX, 370);
+        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica').text(course.instructorId.name, startX, 385);
+        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold').text('DATE ISSUED', startX + 200, 370);
+        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica').text(new Date().toLocaleDateString(), startX + 200, 385);
+        doc.fontSize(8).fillColor('#374151').text(`Certificate ID: ${course._id}-${user._id}`, startX, doc.page.height - 60);
 
         doc.end();
-
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 6. BUY COURSE
+// 7. BUY COURSE
 router.post('/buy', async (req, res) => {
   const { learnerId, courseId, learnerSecret } = req.body; 
 
@@ -250,7 +207,7 @@ router.post('/buy', async (req, res) => {
   }
 });
 
-// 7. GET My Status
+// 8. GET My Status
 router.get('/my-status/:learnerId', async (req, res) => {
     try {
         const txs = await Transaction.find({ learnerId: req.params.learnerId }).sort({ createdAt: -1 });

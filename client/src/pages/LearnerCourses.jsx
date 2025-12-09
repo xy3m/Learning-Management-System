@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // <--- Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const LearnerCourses = () => {
   const [courses, setCourses] = useState([]);
   const [myTransactions, setMyTransactions] = useState([]); 
+  const [myProgress, setMyProgress] = useState([]); // <--- NEW STATE
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // <--- Init Hook
+  const navigate = useNavigate();
 
   // --- Modal States ---
   const [showPayModal, setShowPayModal] = useState(false);
@@ -19,6 +20,7 @@ const LearnerCourses = () => {
     fetchApprovedCourses();
     if (user) {
         fetchMyStatus();
+        fetchMyProgress(); // <--- Fetch Progress
     }
   }, []);
 
@@ -40,7 +42,14 @@ const LearnerCourses = () => {
     } catch(err) { console.error(err); }
   };
 
-  // 1. Open Modal
+  // --- NEW: Fetch Progress ---
+  const fetchMyProgress = async () => {
+    try {
+        const res = await axios.get(`http://localhost:5000/api/learner/my-progress/${user.id}`);
+        setMyProgress(res.data);
+    } catch (err) { console.error(err); }
+  };
+
   const initiateBuy = (courseId, price) => {
       if(!user) return alert("Please login first");
       setSelectedCourse({ id: courseId, price });
@@ -48,7 +57,6 @@ const LearnerCourses = () => {
       setShowPayModal(true);
   };
 
-  // 2. Confirm & Pay
   const confirmPurchase = async (e) => {
       e.preventDefault();
       if(!pinInput) return alert("Please enter your PIN");
@@ -61,14 +69,36 @@ const LearnerCourses = () => {
           });
           alert("✅ Order Placed! Money deducted. Waiting for Admin Approval.");
           setShowPayModal(false);
-          fetchMyStatus(); // Refresh buttons immediately
+          fetchMyStatus(); 
       } catch (err) {
           alert("❌ Purchase Failed: " + (err.response?.data?.message || err.message));
       }
   };
 
-  // --- FIX: PRIORITY LOGIC ---
-  const getButtonState = (courseId) => {
+  const handleStartLearning = (courseId) => {
+      navigate(`/learning/${courseId}`);
+  };
+
+  // --- UPDATED LOGIC FOR BUTTON STATUS ---
+  const getButtonState = (course) => {
+      const courseId = course._id;
+
+      // 1. Check if Course is COMPLETED
+      const progress = myProgress.find(p => p.courseId === courseId);
+      if (progress) {
+          const totalClasses = course.classes.length;
+          const visitedCount = progress.completedClassIndices.length;
+          
+          const classesWithQuiz = course.classes.filter(c => c.mcq && c.mcq.length > 0).length;
+          // Count unique passed quizzes
+          const passedQuizzes = new Set(progress.quizResults.filter(q => q.passed).map(q => q.classIndex)).size;
+          
+          const isFinished = visitedCount >= totalClasses && passedQuizzes >= classesWithQuiz;
+          
+          if (isFinished) return 'course_completed';
+      }
+
+      // 2. Check Transaction Status
       const courseTxs = myTransactions.filter(t => t.courseId === courseId);
       
       if (courseTxs.some(t => t.status === 'completed')) return 'owned';
@@ -76,11 +106,6 @@ const LearnerCourses = () => {
       if (courseTxs.some(t => t.status.includes('declined'))) return 'declined';
       
       return 'buy';
-  };
-
-  // --- NEW: Handle Start Learning ---
-  const handleStartLearning = (courseId) => {
-      navigate(`/learning/${courseId}`);
   };
 
   return (
@@ -105,13 +130,14 @@ const LearnerCourses = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {courses.map(course => {
-             const status = getButtonState(course._id);
+             const status = getButtonState(course); // Pass full course object now
 
              return (
                 <div key={course._id} className="bg-dark-800 rounded-xl border border-gray-700 overflow-hidden hover:border-accent-500 transition shadow-lg flex flex-col">
                     <div className="h-32 bg-gradient-to-r from-indigo-900 to-purple-900 flex items-center justify-center relative">
                         <span className="text-4xl">🎓</span>
-                        {status === 'owned' && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">OWNED</div>}
+                        {/* Show OWNED badge if owned OR completed */}
+                        {(status === 'owned' || status === 'course_completed') && <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">OWNED</div>}
                     </div>
                     
                     <div className="p-6 flex-1 flex flex-col">
@@ -133,9 +159,17 @@ const LearnerCourses = () => {
                                 <button disabled className="bg-yellow-600 text-white px-4 py-2 rounded font-bold cursor-not-allowed opacity-80 text-sm">
                                     Pending Confirmation
                                 </button>
+                            ) : status === 'course_completed' ? (
+                                // --- COMPLETED BUTTON ---
+                                <button 
+                                    onClick={() => handleStartLearning(course._id)}
+                                    className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded font-bold shadow-glow"
+                                >
+                                    Completed
+                                </button>
                             ) : (
                                 <button 
-                                    onClick={() => handleStartLearning(course._id)} // <--- LINKED HERE
+                                    onClick={() => handleStartLearning(course._id)}
                                     className="bg-green-600 hover:bg-green-500 transition text-white px-4 py-2 rounded font-bold shadow-glow"
                                 >
                                     Start Learning
