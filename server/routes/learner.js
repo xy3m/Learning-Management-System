@@ -3,7 +3,7 @@ const Course = require('../models/Course');
 const Transaction = require('../models/Transaction');
 const Bank = require('../models/Bank');
 const User = require('../models/User');
-const PDFDocument = require('pdfkit'); // Requires 'npm install pdfkit'
+const PDFDocument = require('pdfkit'); 
 
 // --- HELPER: Get Admin Bank ---
 const getAdminBank = async () => {
@@ -53,7 +53,6 @@ router.get('/course/:courseId/:learnerId', async (req, res) => {
     
     if (!course || !user) return res.status(404).json({ message: "Not found" });
 
-    // Find progress for this course
     const progress = user.enrolledCourses.find(c => c.courseId.toString() === req.params.courseId) || {
         completedClassIndices: [],
         quizResults: []
@@ -63,13 +62,12 @@ router.get('/course/:courseId/:learnerId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. UPDATE PROGRESS (Mark Class as Visited)
+// 3. UPDATE PROGRESS
 router.post('/progress', async (req, res) => {
     const { learnerId, courseId, classIndex } = req.body;
     try {
         const user = await User.findById(learnerId);
         
-        // Find or Init Course Progress
         let enrollment = user.enrolledCourses.find(c => c.courseId.toString() === courseId);
         if (!enrollment) {
             user.enrolledCourses.push({ courseId, completedClassIndices: [classIndex] });
@@ -92,15 +90,11 @@ router.post('/submit-quiz', async (req, res) => {
         let enrollment = user.enrolledCourses.find(c => c.courseId.toString() === courseId);
         
         if (!enrollment) {
-            // Should theoretically exist if they are viewing the course
             enrollment = { courseId, completedClassIndices: [], quizResults: [] };
             user.enrolledCourses.push(enrollment);
         }
 
-        // Remove old score for this class if exists
         enrollment.quizResults = enrollment.quizResults.filter(q => q.classIndex !== classIndex);
-        
-        // Add new score
         enrollment.quizResults.push({ classIndex, score, passed });
         
         await user.save();
@@ -108,7 +102,7 @@ router.post('/submit-quiz', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. GENERATE CERTIFICATE (PDF)
+// 5. GENERATE CERTIFICATE (Dark Theme & Stylish)
 router.get('/certificate/:courseId/:learnerId', async (req, res) => {
     try {
         const course = await Course.findById(req.params.courseId).populate('instructorId', 'name');
@@ -117,48 +111,94 @@ router.get('/certificate/:courseId/:learnerId', async (req, res) => {
         const doc = new PDFDocument({
             layout: 'landscape',
             size: 'A4',
+            margin: 0 // Full bleed for background
         });
 
-        // Helper to center text
-        const centerText = (text, y, fontSize, font = 'Helvetica') => {
-            doc.font(font).fontSize(fontSize).text(text, 0, y, { align: 'center', width: doc.page.width });
-        };
-
-        // Stream PDF to client
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=Certificate-${course.title}.pdf`);
         doc.pipe(res);
 
-        // --- DESIGN ---
-        // Border
-        doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).strokeColor('#6366f1').lineWidth(5).stroke();
+        // --- 1. BACKGROUND (Dark Theme) ---
+        doc.rect(0, 0, doc.page.width, doc.page.height).fill('#121212'); // Main Dark BG
 
-        // Content
-        doc.moveDown(2);
-        centerText('CERTIFICATE OF COMPLETION', 100, 30, 'Helvetica-Bold');
+        // --- 2. ABSTRACT SHAPES (Top Right Corner) ---
+        doc.save(); // Save state
         
-        centerText('This is to certify that', 160, 15);
-        
-        doc.fillColor('#6366f1');
-        centerText(user.name, 190, 40, 'Helvetica-Bold');
-        doc.fillColor('black');
+        // Shape 1 (Yellow)
+        doc.path('M 600 0 Q 750 100 842 0') 
+           .lineTo(doc.page.width, 0)
+           .lineTo(doc.page.width, 300)
+           .bezierCurveTo(750, 350, 650, 100, 600, 0)
+           .fill('#FCD34D'); // Yellow-400
 
-        centerText('has successfully completed the course', 250, 15);
+        // Shape 2 (Green)
+        doc.circle(doc.page.width, 150, 180)
+           .fillOpacity(0.9)
+           .fill('#10B981'); // Green-500
+
+        // Shape 3 (Blue/Accent)
+        doc.circle(doc.page.width - 50, 300, 120)
+           .fillOpacity(0.9)
+           .fill('#6366F1'); // Indigo-500 (Accent)
+
+        doc.restore(); // Restore state so text isn't clipped/colored
+
+        // --- 3. BORDER FRAME ---
+        const margin = 30;
+        doc.rect(margin, margin, doc.page.width - (margin*2), doc.page.height - (margin*2))
+           .strokeColor('#333333')
+           .lineWidth(3)
+           .stroke();
+
+        // --- 4. CONTENT (Left Aligned) ---
+        const startX = 80; // Left padding for text
+
+        // LOGO
+        doc.fontSize(30).fillColor('#6366F1').font('Helvetica-Bold')
+           .text('LMS.SIM', startX, 70);
+
+        // Header Title
+        doc.fontSize(10).fillColor('#9CA3AF').font('Helvetica') // Gray-400
+           .text('CERTIFICATE OF COMPLETION', startX, 120, { letterSpacing: 2 });
+
+        // Learner Name (Huge)
+        doc.fontSize(45).fillColor('#FFFFFF').font('Helvetica-Bold')
+           .text(user.name, startX, 140);
+
+        // Subtext
+        doc.fontSize(12).fillColor('#9CA3AF').font('Helvetica')
+           .text('SUCCESSFULLY COMPLETED THE COURSE', startX, 210, { letterSpacing: 1 });
+
+        // Course Title (Large)
+        doc.fontSize(30).fillColor('#FFFFFF').font('Helvetica-Bold')
+           .text(course.title, startX, 235, { width: 500 }); // Limit width to avoid hitting shapes
+
+        // Line Separator
+        doc.moveTo(startX, 350).lineTo(startX + 300, 350).strokeColor('#4B5563').lineWidth(1).stroke();
+
+        // Footer Info (Instructor & Date)
+        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold') // Gray-300
+           .text('INSTRUCTOR', startX, 370);
         
-        doc.fillColor('#121212');
-        centerText(course.title, 280, 25, 'Helvetica-Bold');
+        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica')
+           .text(course.instructorId.name, startX, 385);
+
+        doc.fontSize(10).fillColor('#D1D5DB').font('Helvetica-Bold')
+           .text('DATE ISSUED', startX + 200, 370); // Offset to the right
         
-        centerText(`Instructor: ${course.instructorId.name}`, 330, 15);
-        
-        centerText(`Date: ${new Date().toLocaleDateString()}`, 450, 12);
-        
+        doc.fontSize(12).fillColor('#FFFFFF').font('Helvetica')
+           .text(new Date().toLocaleDateString(), startX + 200, 385);
+
+        // ID (Bottom Left, small)
+        doc.fontSize(8).fillColor('#374151') // Gray-700 (Very dark gray)
+           .text(`Certificate ID: ${course._id}-${user._id}`, startX, doc.page.height - 60);
+
         doc.end();
 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ... (Existing Buy Route logic remains here) ...
-// 6. BUY COURSE (Existing Code)
+// 6. BUY COURSE
 router.post('/buy', async (req, res) => {
   const { learnerId, courseId, learnerSecret } = req.body; 
 
@@ -210,7 +250,7 @@ router.post('/buy', async (req, res) => {
   }
 });
 
-// ... (Existing My Status Route) ...
+// 7. GET My Status
 router.get('/my-status/:learnerId', async (req, res) => {
     try {
         const txs = await Transaction.find({ learnerId: req.params.learnerId }).sort({ createdAt: -1 });
