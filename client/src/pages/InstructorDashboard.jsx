@@ -5,29 +5,37 @@ import ContentEditor from '../components/ContentEditor';
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
+  
+  // --- USER STATE (Must be state to trigger re-render after setup) ---
+  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
+  
+  // --- DASHBOARD STATES ---
   const [balance, setBalance] = useState(0);
   const [courses, setCourses] = useState([]);
   const [transactions, setTransactions] = useState([]); 
-  const user = JSON.parse(sessionStorage.getItem('user'));
-
-  // --- STATE ---
   const [activeTab, setActiveTab] = useState('courses'); 
   const [step, setStep] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [courseData, setCourseData] = useState({ title: '', description: '', price: '', numClasses: '', classes: [] });
 
+  // --- BANK SETUP STATE ---
+  const [bankData, setBankData] = useState({ accountNumber: '', secret: '' });
+
   useEffect(() => {
     if (!user || user.role !== 'instructor') {
       navigate('/login'); 
       return;
     }
-    fetchBalance();
-    fetchCourses();
-  }, []);
+    
+    // Only fetch dashboard data if Bank is set up
+    if (user.bankAccountId) {
+        fetchBalance();
+        fetchCourses();
+    }
+  }, [user]); // Re-run when user updates (e.g. after bank setup)
 
   const fetchBalance = async () => {
-    if(!user.bankAccountId) return;
     try {
       const res = await axios.get(`http://localhost:5000/api/bank/balance/${user.id}`);
       setBalance(res.data.balance);
@@ -48,6 +56,29 @@ const InstructorDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
+  // --- NEW: HANDLE BANK SETUP ---
+  const handleBankSetup = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('http://localhost:5000/api/bank/setup', {
+        userId: user.id,
+        accountNumber: bankData.accountNumber,
+        secret: bankData.secret
+      });
+      
+      // Update User in Session & State
+      const updatedUser = { ...user, bankAccountId: res.data._id };
+      sessionStorage.setItem('user', JSON.stringify(updatedUser)); 
+      setUser(updatedUser); // Triggers re-render to show Dashboard
+      
+      alert("✅ Bank Setup Complete! You can now receive payouts.");
+
+    } catch (err) {
+      alert("Setup Failed: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // --- EXISTING HANDLERS ---
   const handleTxAction = async (id, action) => {
     try {
         const res = await axios.post('http://localhost:5000/api/instructor/transaction-action', { transactionId: id, action });
@@ -129,6 +160,45 @@ const InstructorDashboard = () => {
 
   const cancelEdit = () => { setStep(1); setIsEditing(false); setEditingCourseId(null); setCourseData({ title: '', description: '', price: '', numClasses: '', classes: [] }); };
 
+  // --- RENDER: 1. BANK SETUP (If missing) ---
+  if (user && !user.bankAccountId) {
+    return (
+      <div className="max-w-lg mx-auto mt-20">
+        <div className="bg-dark-800 p-8 rounded-xl shadow-glow border border-red-900/50 text-center">
+          <h2 className="text-3xl font-bold text-white mb-2">💰 Setup Payout Account</h2>
+          <p className="text-gray-400 mb-8">
+            Before you can upload courses, you must link a bank account to receive your <b>60% revenue share</b>.
+          </p>
+          
+          <form onSubmit={handleBankSetup} className="space-y-5 text-left">
+            <div>
+              <label className="text-sm text-gray-500 font-bold ml-1">Account Number</label>
+              <input 
+                type="text" 
+                placeholder="e.g. INST-888-999" 
+                className="input-field"
+                onChange={e => setBankData({...bankData, accountNumber: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 font-bold ml-1">Create Secret PIN</label>
+              <input 
+                type="password" 
+                placeholder="Secret PIN (for transactions)" 
+                className="input-field"
+                onChange={e => setBankData({...bankData, secret: e.target.value})}
+                required
+              />
+            </div>
+            <button className="btn-primary w-full py-3 mt-4 text-lg">Initialize Instructor Account</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER: 2. MAIN DASHBOARD (If Bank Exists) ---
   return (
     <div className="max-w-6xl mx-auto mt-8">
       {/* HEADER */}
@@ -145,8 +215,12 @@ const InstructorDashboard = () => {
 
       {/* TABS */}
       <div className="flex gap-4 mb-6 border-b border-gray-700 pb-2">
-        <button onClick={() => setActiveTab('courses')} className={`pb-2 px-4 ${activeTab === 'courses' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>Manage Courses</button>
-        <button onClick={() => { setActiveTab('history'); fetchHistory(); }} className={`pb-2 px-4 ${activeTab === 'history' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>Transaction History</button>
+        <button onClick={() => setActiveTab('courses')} className={`pb-2 px-4 ${activeTab === 'courses' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
+            Manage Courses
+        </button>
+        <button onClick={() => { setActiveTab('history'); fetchHistory(); }} className={`pb-2 px-4 ${activeTab === 'history' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
+            Transaction History
+        </button>
       </div>
 
       {/* --- TAB 1: COURSES --- */}
@@ -155,7 +229,9 @@ const InstructorDashboard = () => {
             {step === 1 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">{isEditing ? `Editing: ${courseData.title}` : "Course Info"}</h2>
+                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">
+                            {isEditing ? `Editing: ${courseData.title}` : "Step 1: Course Info"}
+                        </h2>
                         <form onSubmit={handleStep1Submit} className="space-y-4">
                             <input className="input-field" placeholder="Course Title" value={courseData.title} onChange={e => setCourseData({...courseData, title: e.target.value})} required />
                             <div className="grid grid-cols-2 gap-4">
@@ -169,6 +245,7 @@ const InstructorDashboard = () => {
                             </div>
                         </form>
                     </div>
+
                     <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
                         <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">My Uploaded Courses</h2>
                         <div className="space-y-4 max-h-[500px] overflow-y-auto">
@@ -191,6 +268,7 @@ const InstructorDashboard = () => {
                     </div>
                 </div>
             )}
+
             {step === 2 && <ContentEditor courseData={courseData} setCourseData={setCourseData} onBack={cancelEdit} onFinalSubmit={handleFinalSubmit} />}
         </>
       )}
@@ -215,7 +293,6 @@ const InstructorDashboard = () => {
                                 </div>
                             </div>
                             <div className="text-right flex flex-col items-end gap-2">
-                                <p className="text-xl font-bold text-white">৳{tx.amount}</p>
                                 <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide ${
                                     tx.status === 'completed' ? 'bg-green-900 text-green-400' :
                                     tx.status === 'pending_instructor' ? 'bg-yellow-900 text-yellow-400' :

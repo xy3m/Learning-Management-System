@@ -4,6 +4,43 @@ const Bank = require('../models/Bank');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 
+// --- HELPER: Auto-Fix Admin Bank Connection ---
+const getAdminBank = async () => {
+    let admin = await User.findOne({ role: 'lms-admin' });
+    if (!admin) throw new Error("CRITICAL: No Admin user found. Please run 'node seed.js'");
+
+    // 1. Check if Admin is already linked to a valid bank
+    if (admin.bankAccountId) {
+        const linkedBank = await Bank.findById(admin.bankAccountId);
+        if (linkedBank) return linkedBank; 
+    }
+
+    // 2. Check if the Vault exists but is unlinked (Relink it)
+    const existingVault = await Bank.findOne({ accountNumber: "ADMIN-VAULT-999" });
+    if (existingVault) {
+        console.log("Found existing Admin Vault. Relinking...");
+        admin.bankAccountId = existingVault._id;
+        await admin.save();
+        return existingVault;
+    }
+
+    // 3. Create New Vault if it completely missing
+    console.log("Creating New Admin Bank Vault...");
+    const newBank = new Bank({ 
+        ownerId: admin._id, 
+        accountName: "LMS Treasury Vault",
+        balance: 10000, 
+        accountNumber: "ADMIN-VAULT-999", 
+        secret: "admin-secret-key" // Default PIN
+    });
+    
+    await newBank.save();
+    admin.bankAccountId = newBank._id;
+    await admin.save();
+    
+    return newBank;
+};
+
 // 1. Get Pending Courses
 router.get('/pending-courses', async (req, res) => {
   try {
@@ -28,16 +65,17 @@ router.put('/approve/:courseId', async (req, res) => {
         return res.status(400).json({ message: "Course is already approved." });
     }
 
-    const admin = await User.findOne({ role: 'lms-admin' });
+    // A. Get Instructor
     const instructor = await User.findById(course.instructorId);
+    if (!instructor) return res.status(404).json({ message: "Instructor user missing." });
 
-    if (!admin || !instructor) return res.status(404).json({ message: "User data missing." });
+    // B. Get Admin Bank (Using Robust Helper)
+    const adminBank = await getAdminBank(); // <--- FIX IS HERE
 
-    const adminBank = await Bank.findById(admin.bankAccountId);
+    // C. Get Instructor Bank
     const instructorBank = await Bank.findById(instructor.bankAccountId);
-
-    if (!adminBank || !instructorBank) {
-        return res.status(404).json({ message: "Bank accounts not linked." });
+    if (!instructorBank) {
+        return res.status(404).json({ message: "Instructor has not set up a bank account yet." });
     }
 
     // --- SECURITY CHECK ---
@@ -51,6 +89,7 @@ router.put('/approve/:courseId', async (req, res) => {
         return res.status(400).json({ message: "Admin Vault has insufficient funds to pay approval bonus." });
     }
 
+    // Transfer Money
     adminBank.balance -= BONUS_AMOUNT;
     instructorBank.balance += BONUS_AMOUNT;
 
@@ -63,7 +102,10 @@ router.put('/approve/:courseId', async (req, res) => {
 
     res.json({ message: "Success! Verified PIN, Sent ৳1000, and Approved Course." });
 
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+      console.error(err);
+      res.status(500).json({ error: err.message }); 
+  }
 });
 
 // 3. DECLINE COURSE CONTENT
@@ -106,10 +148,12 @@ router.post('/transaction-action', async (req, res) => {
         } 
         else if (action === 'decline') {
             const learner = await User.findById(tx.learnerId);
-            const admin = await User.findOne({ role: 'lms-admin' });
             
+            // Get Admin Bank (Using Robust Helper)
+            const adminBank = await getAdminBank(); // <--- FIX IS HERE
             const learnerBank = await Bank.findById(learner.bankAccountId);
-            const adminBank = await Bank.findById(admin.bankAccountId);
+
+            if (!learnerBank) return res.status(404).json({ message: "Learner bank not found" });
 
             // Refund Logic
             adminBank.balance -= tx.amount;
@@ -123,6 +167,7 @@ router.post('/transaction-action', async (req, res) => {
             return res.json({ message: "Transaction Declined. Money Refunded." });
         }
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });

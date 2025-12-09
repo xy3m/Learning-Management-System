@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // <--- Import useNavigate
 
 const LearnerCourses = () => {
   const [courses, setCourses] = useState([]);
   const [myTransactions, setMyTransactions] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // <--- Init Hook
 
   // --- Modal States ---
   const [showPayModal, setShowPayModal] = useState(false);
@@ -59,7 +61,7 @@ const LearnerCourses = () => {
           });
           alert("✅ Order Placed! Money deducted. Waiting for Admin Approval.");
           setShowPayModal(false);
-          fetchMyStatus(); // Refresh to see "Pending"
+          fetchMyStatus(); // Refresh buttons immediately
       } catch (err) {
           alert("❌ Purchase Failed: " + (err.response?.data?.message || err.message));
       }
@@ -67,20 +69,18 @@ const LearnerCourses = () => {
 
   // --- FIX: PRIORITY LOGIC ---
   const getButtonState = (courseId) => {
-      // Get ALL transactions for this specific course
       const courseTxs = myTransactions.filter(t => t.courseId === courseId);
       
-      // 1. Priority: OWNED (If any transaction is completed, you own it)
       if (courseTxs.some(t => t.status === 'completed')) return 'owned';
-      
-      // 2. Priority: PENDING (If any transaction is pending, you are waiting)
       if (courseTxs.some(t => t.status.includes('pending'))) return 'pending';
-      
-      // 3. Priority: DECLINED (Only if NO pending and NO completed items exist)
       if (courseTxs.some(t => t.status.includes('declined'))) return 'declined';
       
-      // 4. Default
       return 'buy';
+  };
+
+  // --- NEW: Handle Start Learning ---
+  const handleStartLearning = (courseId) => {
+      navigate(`/learning/${courseId}`);
   };
 
   return (
@@ -122,7 +122,6 @@ const LearnerCourses = () => {
                         <div className="flex justify-between items-center mt-auto border-t border-gray-700 pt-4">
                             <span className="text-2xl font-bold text-white">৳{course.price}</span>
                             
-                            {/* BUTTON LOGIC */}
                             {status === 'buy' || status === 'declined' ? (
                                 <button 
                                     onClick={() => initiateBuy(course._id, course.price)} 
@@ -135,7 +134,12 @@ const LearnerCourses = () => {
                                     Pending Confirmation
                                 </button>
                             ) : (
-                                <button className="bg-green-600 text-white px-4 py-2 rounded font-bold cursor-default">Start Learning</button>
+                                <button 
+                                    onClick={() => handleStartLearning(course._id)} // <--- LINKED HERE
+                                    className="bg-green-600 hover:bg-green-500 transition text-white px-4 py-2 rounded font-bold shadow-glow"
+                                >
+                                    Start Learning
+                                </button>
                             )}
                         </div>
                     </div>

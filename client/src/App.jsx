@@ -6,6 +6,8 @@ import InstructorDashboard from './pages/InstructorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import LearnerCourses from './pages/LearnerCourses';
+import CourseLearning from './pages/CourseLearning'; // <--- IMPORT
+
 function App() {
   return (
     <Router>
@@ -15,6 +17,7 @@ function App() {
         <div className="p-8">
           <Routes>
             <Route path="/courses" element={<LearnerCourses />} />
+            <Route path="/learning/:courseId" element={<CourseLearning />} /> {/* <--- NEW ROUTE */}
             <Route path="/instructor" element={<InstructorDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/" element={<Home />} />

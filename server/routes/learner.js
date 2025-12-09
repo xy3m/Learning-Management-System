@@ -36,7 +36,7 @@ const getAdminBank = async () => {
     return newBank;
 };
 
-// 1. GET all APPROVED courses
+// 1. GET all APPROVED courses (For listing)
 router.get('/available-courses', async (req, res) => {
   try {
     const courses = await Course.find({ status: 'approved' }).populate('instructorId', 'name');
@@ -44,16 +44,24 @@ router.get('/available-courses', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. GET My Transaction Status (UPDATED: Sorted Newest First)
+// 2. GET SINGLE COURSE (For Learning Page - Content Fetch)
+router.get('/course/:courseId', async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.courseId).populate('instructorId', 'name');
+    if (!course) return res.status(404).json({ message: "Course not found" });
+    res.json(course);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 3. GET My Transaction Status
 router.get('/my-status/:learnerId', async (req, res) => {
     try {
-        // .sort({ createdAt: -1 }) ensures the newest retry appears first
         const txs = await Transaction.find({ learnerId: req.params.learnerId }).sort({ createdAt: -1 });
         res.json(txs);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. BUY COURSE (Secure: Requires Secret PIN)
+// 4. BUY COURSE (Secure)
 router.post('/buy', async (req, res) => {
   const { learnerId, courseId, learnerSecret } = req.body; 
 
