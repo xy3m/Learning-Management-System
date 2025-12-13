@@ -2,11 +2,56 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ContentEditor from '../components/ContentEditor';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Wallet, BookOpen, Plus, Edit3, Trash2, 
+  Clock, CheckCircle, TrendingUp,
+  LayoutDashboard, History, Lock 
+} from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+
+// --- STYLED COMPONENTS ---
+
+const GlassCard = ({ children, className = "" }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className={`
+      relative overflow-hidden
+      bg-gray-900/40 backdrop-blur-xl 
+      border border-white/5 shadow-xl
+      rounded-2xl p-8 
+      ${className}
+    `}
+  >
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+    {children}
+  </motion.div>
+);
+
+const TabButton = ({ active, onClick, label, icon: Icon }) => (
+  <button 
+    onClick={onClick} 
+    className={`
+      relative flex items-center gap-3 px-8 py-4 rounded-xl transition-all duration-300 font-bold text-base z-10
+      ${active ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+    `}
+  >
+    {active && (
+      <motion.div 
+        layoutId="activeTab"
+        className="absolute inset-0 bg-indigo-600/20 border border-indigo-500/30 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+      />
+    )}
+    <Icon size={20} className={active ? "text-indigo-400" : ""} />
+    <span className="relative z-10">{label}</span>
+  </button>
+);
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
   
-  // --- USER STATE (Must be state to trigger re-render after setup) ---
+  // --- USER STATE ---
   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user')));
   
   // --- DASHBOARD STATES ---
@@ -33,7 +78,7 @@ const InstructorDashboard = () => {
         fetchBalance();
         fetchCourses();
     }
-  }, [user]); // Re-run when user updates (e.g. after bank setup)
+  }, [user]); 
 
   const fetchBalance = async () => {
     try {
@@ -56,9 +101,9 @@ const InstructorDashboard = () => {
     } catch (err) { console.error(err); }
   };
 
-  // --- NEW: HANDLE BANK SETUP ---
   const handleBankSetup = async (e) => {
     e.preventDefault();
+    const loadingToast = toast.loading("Linking payout account...");
     try {
       const res = await axios.post('http://localhost:5000/api/bank/setup', {
         userId: user.id,
@@ -66,44 +111,44 @@ const InstructorDashboard = () => {
         secret: bankData.secret
       });
       
-      // Update User in Session & State
       const updatedUser = { ...user, bankAccountId: res.data._id };
       sessionStorage.setItem('user', JSON.stringify(updatedUser)); 
-      setUser(updatedUser); // Triggers re-render to show Dashboard
+      setUser(updatedUser); 
       
-      alert("✅ Bank Setup Complete! You can now receive payouts.");
+      toast.success("Bank Setup Complete! Ready for payouts.", { id: loadingToast });
 
     } catch (err) {
-      alert("Setup Failed: " + (err.response?.data?.message || err.message));
+      toast.error("Setup Failed: " + (err.response?.data?.message || err.message), { id: loadingToast });
     }
   };
 
   // --- EXISTING HANDLERS ---
   const handleTxAction = async (id, action) => {
+    const loadingToast = toast.loading("Processing transaction...");
     try {
         const res = await axios.post('http://localhost:5000/api/instructor/transaction-action', { transactionId: id, action });
-        alert(res.data.message);
+        toast.success(res.data.message, { id: loadingToast });
         fetchHistory(); 
         fetchBalance(); 
-    } catch(err) { alert("Action Failed"); }
+    } catch(err) { toast.error("Action Failed", { id: loadingToast }); }
   };
 
   const handleClearHistory = async () => {
-      if(!window.confirm("Clear all Completed and Declined transactions? (Pending requests will be kept)")) return;
+      if(!window.confirm("Clear all Completed and Declined transactions?")) return;
       try {
           await axios.delete(`http://localhost:5000/api/instructor/clear-history/${user.id}`);
           fetchHistory(); 
-          alert("History Cleared!");
-      } catch (err) { alert("Failed to clear history"); }
+          toast.success("History Cleared!");
+      } catch (err) { toast.error("Failed to clear history"); }
   };
 
   const handleDelete = async (courseId) => {
-    if(!window.confirm("Are you sure?")) return;
+    if(!window.confirm("Are you sure you want to delete this course?")) return;
     try {
         await axios.delete(`http://localhost:5000/api/instructor/delete/${courseId}`);
-        alert("Course Deleted");
+        toast.success("Course Deleted");
         fetchCourses();
-    } catch (err) { alert(err.response?.data?.message || "Delete failed"); }
+    } catch (err) { toast.error(err.response?.data?.message || "Delete failed"); }
   };
 
   const handleEdit = (course) => {
@@ -116,7 +161,7 @@ const InstructorDashboard = () => {
   const handleStep1Submit = (e) => {
     e.preventDefault();
     if (!courseData.title || !courseData.price || !courseData.numClasses || !courseData.description) {
-        alert("Please fill in all fields before proceeding.");
+        toast.error("Please fill in all fields before proceeding.");
         return;
     }
     setCourseData(prev => {
@@ -136,26 +181,27 @@ const InstructorDashboard = () => {
   };
 
   const handleFinalSubmit = async () => {
+      const loadingToast = toast.loading("Submitting course content...");
       try {
         if (isEditing && editingCourseId) {
             await axios.put(`http://localhost:5000/api/instructor/update/${editingCourseId}`, { 
                 ...courseData, 
                 instructorId: user.id 
             });
-            alert("Course Updated! Sent for Admin Approval.");
+            toast.success("Course Updated! Sent for Admin Approval.", { id: loadingToast });
         } else {
             await axios.post('http://localhost:5000/api/instructor/upload', { 
                 ...courseData, 
                 instructorId: user.id 
             });
-            alert("Course Submitted! Pending Admin Approval.");
+            toast.success("Course Submitted! Pending Admin Approval.", { id: loadingToast });
         }
         setStep(1); 
         setIsEditing(false); 
         setEditingCourseId(null);
         setCourseData({ title: '', description: '', price: '', numClasses: '', classes: [] });
         fetchCourses();
-      } catch (err) { alert("Submission Failed: " + (err.response?.data?.message || err.message)); }
+      } catch (err) { toast.error("Submission Failed: " + (err.response?.data?.message || err.message), { id: loadingToast }); }
   };
 
   const cancelEdit = () => { setStep(1); setIsEditing(false); setEditingCourseId(null); setCourseData({ title: '', description: '', price: '', numClasses: '', classes: [] }); };
@@ -163,154 +209,349 @@ const InstructorDashboard = () => {
   // --- RENDER: 1. BANK SETUP (If missing) ---
   if (user && !user.bankAccountId) {
     return (
-      <div className="max-w-lg mx-auto mt-20">
-        <div className="bg-dark-800 p-8 rounded-xl shadow-glow border border-red-900/50 text-center">
-          <h2 className="text-3xl font-bold text-white mb-2">💰 Setup Payout Account</h2>
-          <p className="text-gray-400 mb-8">
-            Before you can upload courses, you must link a bank account to receive your <b>60% revenue share</b>.
-          </p>
+      <div className="absolute inset-0 w-full h-full bg-[#030712] flex items-center justify-center p-6 overflow-hidden z-50">
+        <Toaster position="top-center" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+        
+        <GlassCard className="max-w-lg w-full relative z-10 border-indigo-500/20 shadow-[0_0_50px_-12px_rgba(99,102,241,0.2)]">
+          <div className="text-center mb-8">
+             <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/20">
+                <Wallet className="text-indigo-400" size={40} />
+             </div>
+             <h2 className="text-3xl font-bold text-white mb-3">Setup Payout Account</h2>
+             <p className="text-gray-400 text-base">Link a bank account to receive your <span className="text-white font-bold">60% revenue share</span>.</p>
+          </div>
           
-          <form onSubmit={handleBankSetup} className="space-y-5 text-left">
-            <div>
-              <label className="text-sm text-gray-500 font-bold ml-1">Account Number</label>
+          <form onSubmit={handleBankSetup} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-500 uppercase ml-1">Account Number</label>
               <input 
                 type="text" 
                 placeholder="e.g. INST-888-999" 
-                className="input-field"
+                className="w-full bg-black/40 border border-gray-700 text-white rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
                 onChange={e => setBankData({...bankData, accountNumber: e.target.value})}
                 required
               />
             </div>
-            <div>
-              <label className="text-sm text-gray-500 font-bold ml-1">Create Secret PIN</label>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-500 uppercase ml-1">Create Secret PIN</label>
               <input 
                 type="password" 
-                placeholder="Secret PIN (for transactions)" 
-                className="input-field"
+                placeholder="Secret PIN" 
+                className="w-full bg-black/40 border border-gray-700 text-white rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
                 onChange={e => setBankData({...bankData, secret: e.target.value})}
                 required
               />
             </div>
-            <button className="btn-primary w-full py-3 mt-4 text-lg">Initialize Instructor Account</button>
+            <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-500/20 transition-all mt-4"
+            >
+                Initialize Account
+            </motion.button>
           </form>
-        </div>
+        </GlassCard>
       </div>
     );
   }
 
-  // --- RENDER: 2. MAIN DASHBOARD (If Bank Exists) ---
+  // --- RENDER: 2. MAIN DASHBOARD ---
   return (
-    <div className="max-w-6xl mx-auto mt-8">
-      {/* HEADER */}
-      <div className="bg-dark-800 p-8 rounded-xl shadow-glow mb-8 flex justify-between items-center border border-gray-700">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Instructor Studio</h1>
-          <p className="text-gray-400">Welcome, {user?.name}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-400 uppercase tracking-widest">Wallet Balance</p>
-          <p className="text-4xl font-mono text-accent-500 font-bold mt-2">৳{balance}</p>
-        </div>
-      </div>
+    <div className="absolute inset-0 w-full min-h-screen bg-[#030712] text-gray-200 overflow-x-hidden overflow-y-auto">
+      <div className="pt-28 pb-20 w-full"> {/* Padding for Fixed Navbar */}
+      
+      <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
+      
+      {/* --- DASHBOARD HEADER --- */}
+      <div className="w-full px-8 mb-10">
+        <div className="bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
+          
+          <div className="flex items-center gap-6">
+             <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+               <LayoutDashboard className="text-purple-400" size={40} />
+             </div>
+             <div>
+               <h1 className="text-4xl font-bold text-white tracking-tight mb-1">Instructor<span className="text-purple-400">Studio</span></h1>
+               <p className="text-base text-gray-400 font-mono uppercase tracking-wider">Content Command Center</p>
+             </div>
+          </div>
 
-      {/* TABS */}
-      <div className="flex gap-4 mb-6 border-b border-gray-700 pb-2">
-        <button onClick={() => setActiveTab('courses')} className={`pb-2 px-4 ${activeTab === 'courses' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
-            Manage Courses
-        </button>
-        <button onClick={() => { setActiveTab('history'); fetchHistory(); }} className={`pb-2 px-4 ${activeTab === 'history' ? 'text-accent-500 border-b-2 border-accent-500' : 'text-gray-400'}`}>
-            Transaction History
-        </button>
-      </div>
-
-      {/* --- TAB 1: COURSES --- */}
-      {activeTab === 'courses' && (
-        <>
-            {step === 1 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">
-                            {isEditing ? `Editing: ${courseData.title}` : "Step 1: Course Info"}
-                        </h2>
-                        <form onSubmit={handleStep1Submit} className="space-y-4">
-                            <input className="input-field" placeholder="Course Title" value={courseData.title} onChange={e => setCourseData({...courseData, title: e.target.value})} required />
-                            <div className="grid grid-cols-2 gap-4">
-                                <input className="input-field" type="number" placeholder="Price (৳)" value={courseData.price} onChange={e => setCourseData({...courseData, price: e.target.value})} required />
-                                <input className="input-field" type="number" placeholder="Number of Classes" min="1" max="50" value={courseData.numClasses} onChange={e => setCourseData({...courseData, numClasses: e.target.value})} required />
-                            </div>
-                            <textarea className="input-field h-32" placeholder="Description" value={courseData.description} onChange={e => setCourseData({...courseData, description: e.target.value})} required />
-                            <div className="flex gap-2">
-                                <button className="btn-primary w-full mt-4">Next: Add Content →</button>
-                                {isEditing && <button type="button" onClick={cancelEdit} className="mt-4 px-4 py-2 border border-gray-500 text-gray-400 rounded hover:text-white">Cancel</button>}
-                            </div>
-                        </form>
-                    </div>
-
-                    <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-                        <h2 className="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-2">My Uploaded Courses</h2>
-                        <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                            {courses.map(c => (
-                                <div key={c._id} className="p-4 bg-dark-900 rounded border border-gray-800">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-white font-bold">{c.title}</span>
-                                        <span className={`text-xs px-2 py-1 rounded ${c.status === 'approved' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>{c.status}</span>
-                                    </div>
-                                    {c.status !== 'approved' && (
-                                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-800">
-                                            <button onClick={() => handleEdit(c)} className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">Edit</button>
-                                            <button onClick={() => handleDelete(c._id)} className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded">Delete</button>
-                                        </div>
-                                    )}
-                                    {c.status === 'approved' && <div className="mt-3 pt-3 border-t border-gray-800 text-xs text-gray-500 italic">This course is live and locked.</div>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+          <div className="flex items-center gap-8">
+             {/* Balance Card */}
+             <div className="flex items-center gap-6 px-8 py-4 rounded-2xl bg-black/40 border border-gray-700/50 shadow-inner">
+                <div className="p-3 rounded-full bg-green-500/10 text-green-400">
+                   <TrendingUp size={32} />
                 </div>
-            )}
+                <div>
+                  <p className="text-sm text-gray-400 uppercase tracking-widest font-bold">Total Earnings</p>
+                  <p className="text-3xl font-mono font-bold text-white">৳{balance.toLocaleString()}</p>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
 
-            {step === 2 && <ContentEditor courseData={courseData} setCourseData={setCourseData} onBack={cancelEdit} onFinalSubmit={handleFinalSubmit} />}
-        </>
-      )}
+      <div className="w-full px-8">
+        
+        {/* --- TABS --- */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-gray-900/50 p-2 rounded-2xl border border-white/5 flex flex-wrap gap-3 justify-center shadow-lg">
+            <TabButton 
+              active={activeTab === 'courses'} 
+              onClick={() => setActiveTab('courses')} 
+              label="Course Manager" 
+              icon={BookOpen} 
+            />
+            <TabButton 
+              active={activeTab === 'history'} 
+              onClick={() => { setActiveTab('history'); fetchHistory(); }} 
+              label="Transaction History" 
+              icon={History} 
+            />
+          </div>
+        </div>
 
-      {/* --- TAB 2: TRANSACTION HISTORY --- */}
-      {activeTab === 'history' && (
-        <div className="bg-dark-800 p-6 rounded-xl border border-gray-700">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-white">Course Orders & Payouts</h2>
-                {transactions.length > 0 && <button onClick={handleClearHistory} className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition">Clear History</button>}
-            </div>
-            {transactions.length === 0 ? <p className="text-gray-500">No active transactions found.</p> : (
-                <div className="space-y-3">
-                    {transactions.map(tx => (
-                        <div key={tx._id} className="flex justify-between items-center p-4 bg-dark-900 border border-gray-800 rounded-lg hover:border-gray-600 transition">
-                            <div>
-                                <h3 className="text-white font-bold text-lg">{tx.courseId?.title || "Course Unavailable"}</h3>
-                                <div className="text-sm text-gray-400 mt-2 space-y-1">
-                                    <p>Learner: <span className="text-accent-500 font-bold">{tx.learnerId?.name}</span> ({tx.learnerId?.email})</p>
-                                    <p className="text-xs text-gray-500">Purchased: {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
-                                    <p className="text-xs text-gray-500">Admin Approved: {tx.adminApprovedAt ? new Date(tx.adminApprovedAt).toLocaleString() : 'Pending/N/A'}</p>
+        {/* --- MAIN CONTENT AREA --- */}
+        <AnimatePresence mode="wait">
+            
+          {/* TAB 1: COURSES */}
+          {activeTab === 'courses' && (
+            <motion.div 
+              key="courses"
+              initial={{ opacity: 0, x: -20 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              exit={{ opacity: 0, x: 20 }}
+            >
+                {step === 1 && (
+                    // WIDENED GRID: 50/50 split
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                        
+                        {/* --- CREATE / EDIT FORM --- */}
+                        <div className="h-fit sticky top-32">
+                            <motion.div 
+                                className="bg-[#0f1116] border border-gray-800 rounded-3xl p-10 shadow-2xl relative overflow-hidden"
+                                whileHover={{ borderColor: "rgba(139, 92, 246, 0.3)" }}
+                            >
+                                {/* Ambient Glow */}
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+
+                                {/* Form Header */}
+                                <div className="flex items-center gap-4 mb-8 relative z-10">
+                                    {isEditing ? <Edit3 className="text-purple-400" size={28} /> : <Plus className="text-purple-400" size={28} />}
+                                    <h2 className="font-bold uppercase text-2xl text-purple-100 tracking-wider">
+                                        {isEditing ? "Edit Course" : "Create New Course"}
+                                    </h2>
                                 </div>
+                                
+                                <form onSubmit={handleStep1Submit} className="space-y-7 relative z-10">
+                                    <div>
+                                        <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Title</label>
+                                        <input 
+                                            className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-gray-500" 
+                                            placeholder="e.g. Advanced Python" 
+                                            value={courseData.title} 
+                                            onChange={e => setCourseData({...courseData, title: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Price (৳)</label>
+                                            <input 
+                                                className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 transition-all" 
+                                                type="number" 
+                                                placeholder="5000" 
+                                                value={courseData.price} 
+                                                onChange={e => setCourseData({...courseData, price: e.target.value})} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Classes</label>
+                                            <input 
+                                                className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 transition-all" 
+                                                type="number" 
+                                                placeholder="10" 
+                                                min="1" 
+                                                max="50" 
+                                                value={courseData.numClasses} 
+                                                onChange={e => setCourseData({...courseData, numClasses: e.target.value})} 
+                                                required 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Description</label>
+                                        <textarea 
+                                            className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-lg h-48 resize-none focus:outline-none focus:border-purple-500 transition-all placeholder:text-gray-500" 
+                                            placeholder="What will students learn?" 
+                                            value={courseData.description} 
+                                            onChange={e => setCourseData({...courseData, description: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                    
+                                    <div className="flex gap-4 pt-4">
+                                        <button className="flex-1 py-5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xl rounded-xl shadow-lg shadow-purple-500/30 transition-all transform hover:-translate-y-1">
+                                            Next: Add Content →
+                                        </button>
+                                        {isEditing && (
+                                            <button type="button" onClick={cancelEdit} className="px-8 py-5 border border-gray-600 text-gray-400 hover:text-white rounded-xl transition-all font-bold text-lg">
+                                                Cancel
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+
+                        {/* Course List - STACKED FULL WIDTH */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-6 mb-6">
+                                <h2 className="text-4xl font-bold text-white">My Library</h2>
+                                <span className="px-5 py-2 rounded-full bg-purple-500/20 text-purple-300 font-bold text-base border border-purple-500/30">
+                                    {courses.length} Courses
+                                </span>
                             </div>
-                            <div className="text-right flex flex-col items-end gap-2">
-                                <span className={`text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide ${
-                                    tx.status === 'completed' ? 'bg-green-900 text-green-400' :
-                                    tx.status === 'pending_instructor' ? 'bg-yellow-900 text-yellow-400' :
-                                    tx.status.includes('declined') ? 'bg-red-900 text-red-400' : 'bg-gray-800 text-gray-400'
-                                }`}>{tx.status === 'declined_instructor' ? 'DECLINED' : tx.status.replace('_', ' ')}</span>
-                                {tx.status === 'pending_instructor' && (
-                                    <div className="flex gap-2 mt-2">
-                                        <button onClick={() => handleTxAction(tx._id, 'approve')} className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transition">Accept Payment</button>
-                                        <button onClick={() => handleTxAction(tx._id, 'decline')} className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold shadow-lg transition">Reject</button>
+
+                            {/* UPDATED: flex-col ensures cards stack vertically and take full width */}
+                            <div className="flex flex-col gap-6">
+                                {courses.map(c => (
+                                    <GlassCard key={c._id} className="group hover:border-purple-500/30 transition-all w-full">
+                                        <div className="flex flex-col h-full justify-between">
+                                            <div>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <h3 className="text-2xl font-bold text-white line-clamp-1" title={c.title}>{c.title}</h3>
+                                                    {c.status === 'approved' 
+                                                        ? <CheckCircle size={28} className="text-green-500 flex-shrink-0" />
+                                                        : <Clock size={28} className="text-yellow-500 flex-shrink-0" />
+                                                    }
+                                                </div>
+                                                <p className="text-base text-gray-400 line-clamp-2 mb-6 h-12 leading-relaxed">{c.description}</p>
+                                                
+                                                <div className="flex items-center gap-4 text-sm font-mono text-gray-500 mb-6">
+                                                    <span className="bg-gray-800 px-4 py-2 rounded-lg">৳{c.price}</span>
+                                                    <span className="bg-gray-800 px-4 py-2 rounded-lg">{c.classes.length} Modules</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="border-t border-white/5 pt-5 flex justify-between items-center">
+                                                <span className={`text-sm uppercase font-bold tracking-wider px-3 py-1.5 rounded ${
+                                                    c.status === 'approved' ? 'text-green-400 bg-green-900/20' : 'text-yellow-400 bg-yellow-900/20'
+                                                }`}>
+                                                    {c.status}
+                                                </span>
+                                                
+                                                {c.status !== 'approved' ? (
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => handleEdit(c)} className="p-3 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition">
+                                                            <Edit3 size={20} />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(c._id)} className="p-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition">
+                                                            <Trash2 size={20} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-600 italic flex items-center gap-2 font-bold">
+                                                        <Lock size={16} /> Locked
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </GlassCard>
+                                ))}
+                                {courses.length === 0 && (
+                                    <div className="w-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl bg-black/20">
+                                        <p className="text-gray-500 text-xl">No courses uploaded yet.</p>
+                                        <p className="text-gray-600 text-base mt-2">Use the form on the left to create your first course.</p>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
-        </div>
-      )}
+                    </div>
+                )}
+
+                {step === 2 && (
+                    <ContentEditor 
+                        courseData={courseData} 
+                        setCourseData={setCourseData} 
+                        onBack={cancelEdit} 
+                        onFinalSubmit={handleFinalSubmit} 
+                    />
+                )}
+            </motion.div>
+          )}
+
+          {/* TAB 2: TRANSACTION HISTORY */}
+          {activeTab === 'history' && (
+            <motion.div 
+               key="history"
+               initial={{ opacity: 0, x: -20 }} 
+               animate={{ opacity: 1, x: 0 }} 
+               exit={{ opacity: 0, x: 20 }}
+               className="w-full"
+            >
+               <GlassCard className="min-h-[600px] p-10">
+                  <div className="flex justify-between items-center mb-10">
+                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                         <History size={32} className="text-purple-400" />
+                         Recent Payouts
+                     </h2>
+                     {transactions.length > 0 && (
+                         <button onClick={handleClearHistory} className="text-base font-bold text-red-400 hover:text-white border border-red-500/30 px-6 py-3 rounded-xl hover:bg-red-500 transition">
+                             Purge History
+                         </button>
+                     )}
+                  </div>
+
+                  {transactions.length === 0 ? <p className="text-gray-600 text-xl text-center mt-32">No transaction records found.</p> : (
+                      <div className="space-y-4">
+                          {transactions.map(tx => (
+                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-2xl bg-black/20 hover:bg-white/5 transition-colors text-lg border border-white/5">
+                                  <div className="col-span-5">
+                                      <p className="font-bold text-white truncate text-xl">{tx.courseId?.title || "Unknown Course"}</p>
+                                      <div className="flex items-center gap-3 mt-2">
+                                          <span className="text-base text-gray-500 uppercase font-bold">Student:</span>
+                                          <span className="text-base text-purple-300 font-medium px-2 py-0.5 bg-purple-500/10 rounded">{tx.learnerId?.name}</span>
+                                      </div>
+                                      <p className="text-sm text-gray-600 mt-1">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
+                                  </div>
+                                  
+                                  <div className="col-span-3">
+                                      <span className={`text-sm px-4 py-2 rounded-full uppercase font-bold border tracking-wide ${
+                                           tx.status === 'completed' ? 'text-green-400 bg-green-500/10 border-green-500/20' :
+                                           tx.status === 'pending_instructor' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' : 
+                                           tx.status.includes('declined') ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-gray-400 bg-gray-500/10 border-white/10'
+                                      }`}>
+                                          {tx.status === 'declined_instructor' ? 'REJECTED' : tx.status.replace('_', ' ')}
+                                      </span>
+                                  </div>
+                                  
+                                  <div className="col-span-4 text-right flex flex-col items-end gap-3">
+                                       {tx.status === 'pending_instructor' ? (
+                                           <div className="flex gap-3">
+                                               <button onClick={() => handleTxAction(tx._id, 'approve')} className="px-5 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-green-500/20">Accept</button>
+                                               <button onClick={() => handleTxAction(tx._id, 'decline')} className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-red-600/20">Reject</button>
+                                           </div>
+                                       ) : (
+                                          <span className="text-gray-400 font-mono text-2xl font-bold">
+                                              {tx.status === 'completed' ? '+' : ''}৳{Math.floor(tx.amount * 0.6)}
+                                          </span>
+                                       )}
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  )}
+               </GlassCard>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
+      
+      </div>
     </div>
   );
 };

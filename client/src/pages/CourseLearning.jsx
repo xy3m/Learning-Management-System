@@ -1,6 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Play, CheckCircle, Lock, BookOpen, AlertCircle, 
+  Award, ChevronRight, FileText, Music, Video, 
+  HelpCircle, RefreshCw, Activity 
+} from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+
+// --- STYLED COMPONENTS ---
+
+const GlassCard = ({ children, className = "" }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className={`
+      relative overflow-hidden
+      bg-gray-900/40 backdrop-blur-xl 
+      border border-white/5 shadow-xl
+      rounded-2xl p-6 
+      ${className}
+    `}
+  >
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+    {children}
+  </motion.div>
+);
 
 const CourseLearning = () => {
     const { courseId } = useParams();
@@ -20,9 +46,7 @@ const CourseLearning = () => {
         fetchCourseAndProgress();
     }, [courseId]);
 
-    // --- FIX 1: Split the Effects ---
-    
-    // Effect A: Reset Quiz ONLY when switching classes (Not when course updates)
+    // Effect A: Reset Quiz ONLY when switching classes
     useEffect(() => {
         setMcqState({});
         setQuizSubmitted(false);
@@ -40,16 +64,14 @@ const CourseLearning = () => {
             const res = await axios.get(`http://localhost:5000/api/learner/course/${courseId}/${user.id}`);
             setCourse(res.data.course);
             if(res.data.progress) setProgressData(res.data.progress);
-        } catch (err) { alert("Failed to load data"); }
+        } catch (err) { toast.error("Failed to load course data"); }
     };
 
     const markClassVisited = async (idx) => {
-        // Optimistic UI Update
         if (!progressData.completedClassIndices.includes(idx)) {
             const newIndices = [...progressData.completedClassIndices, idx];
             setProgressData(prev => ({ ...prev, completedClassIndices: newIndices }));
             
-            // API Call
             await axios.post('http://localhost:5000/api/learner/progress', {
                 learnerId: user.id,
                 courseId,
@@ -58,7 +80,6 @@ const CourseLearning = () => {
         }
     };
 
-    // --- LOGIC: QUIZ ---
     const handleOptionClick = (qIndex, option, correctAnswer) => {
         if (quizSubmitted) return; 
         setMcqState(prev => ({
@@ -72,9 +93,8 @@ const CourseLearning = () => {
         const totalQuestions = currentClass.mcq.length;
         let correctCount = 0;
 
-        // Check if all questions are answered
         if (Object.keys(mcqState).length < totalQuestions) {
-            alert("Please answer all questions before submitting.");
+            toast.error("Please answer all questions before submitting.");
             return;
         }
 
@@ -85,9 +105,8 @@ const CourseLearning = () => {
         const scorePercent = (correctCount / totalQuestions) * 100;
         const passed = scorePercent >= 50;
 
-        setQuizSubmitted(true); // Show Green/Red results
+        setQuizSubmitted(true); 
 
-        // Update Backend
         await axios.post('http://localhost:5000/api/learner/submit-quiz', {
             learnerId: user.id,
             courseId,
@@ -96,7 +115,9 @@ const CourseLearning = () => {
             passed
         });
 
-        // This will now update progress WITHOUT resetting the quiz view
+        if (passed) toast.success(`Quiz Passed! Score: ${scorePercent}%`);
+        else toast.error(`Quiz Failed. Score: ${scorePercent}%`);
+
         fetchCourseAndProgress(); 
     };
 
@@ -116,194 +137,301 @@ const CourseLearning = () => {
         window.open(`http://localhost:5000/api/learner/certificate/${courseId}/${user.id}`, '_blank');
     };
 
-    // Helper for Option Styling
     const getOptionStyle = (qIdx, opt) => {
         const selection = mcqState[qIdx];
         const isSelected = selection?.selected === opt;
 
-        // 1. If NOT submitted yet: Show Blue if selected, Gray otherwise
         if (!quizSubmitted) {
             return isSelected 
-                ? "bg-accent-500/20 border-accent-500 text-white shadow-glow" 
-                : "bg-dark-800 border-gray-700 hover:bg-dark-700 text-gray-300";
+                ? "bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
+                : "bg-black/20 border-white/5 hover:bg-white/5 text-gray-400";
         }
 
-        // 2. If Submitted: Show Results
         if (isSelected) {
             return selection.isCorrect 
-                ? "bg-green-900/50 border-green-500 text-green-400 font-bold" // Selected & Right
-                : "bg-red-900/50 border-red-500 text-red-400"; // Selected & Wrong
+                ? "bg-green-500/20 border-green-500 text-green-400 font-bold" 
+                : "bg-red-500/20 border-red-500 text-red-400"; 
         }
         
-        // Show correct answer if user picked wrong one
         if (selection && !selection.isCorrect && opt === selection.correctAnswer) {
-             return "bg-green-900/20 border-green-500/50 text-green-400 opacity-70";
+             return "bg-green-500/10 border-green-500/30 text-green-400/70 border-dashed";
         }
 
-        return "bg-dark-800 border-gray-700 opacity-50"; // Unselected options
+        return "bg-black/20 border-white/5 opacity-50"; 
     };
 
-    if (!course) return <div className="text-white text-center mt-20 animate-pulse">Loading Class Room...</div>;
+    if (!course) return (
+        <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+            <div className="animate-pulse flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"/>
+                <span className="text-gray-500 font-mono text-sm">LOADING NEURAL LINK...</span>
+            </div>
+        </div>
+    );
 
     const currentClass = course.classes[activeClassIndex];
     const progressPercent = Math.round((progressData.completedClassIndices.length / course.classes.length) * 100);
 
     return (
-        <div className="max-w-7xl mx-auto mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-100px)]">
-            
-            {/* LEFT COLUMN: Content */}
-            <div className="lg:col-span-2 overflow-y-auto pr-2 custom-scrollbar pb-20">
+        <div className="min-h-screen bg-[#030712] text-gray-200 pt-24 pb-10 px-6">
+            <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
+
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {/* VIDEO */}
-                <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl mb-4 border border-gray-800">
-                    <video
-                        key={`vid-${currentClass.video}`} 
-                        src={currentClass.video}
-                        controls
-                        controlsList="nodownload"
-                        className="w-full h-full object-contain"
-                        preload="auto"
-                    />
-                </div>
-
-                {/* AUDIO */}
-                <div className="bg-dark-800 p-4 rounded-xl border border-gray-700 mb-6 flex items-center gap-4">
-                    <span className="text-sm font-bold text-gray-400 uppercase">🎧 Audio Lesson</span>
-                    {currentClass.audio ? (
-                        <audio 
-                            key={`aud-${currentClass.audio}`}
-                            src={currentClass.audio} 
-                            controls 
-                            className="w-full h-10" 
-                        />
-                    ) : <span className="text-gray-600 text-sm italic">No audio available</span>}
-                </div>
-
-                {/* TEXT */}
-                <div className="bg-dark-800 p-8 rounded-xl border border-gray-700 mb-6 shadow-lg">
-                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-gray-700 pb-2">📖 Lesson Notes</h2>
-                    <div className="text-gray-300 whitespace-pre-wrap leading-relaxed text-lg">
-                        {currentClass.text || <span className="text-gray-600 italic">No notes.</span>}
-                    </div>
-                </div>
-
-                {/* MCQs */}
-                {currentClass.mcq && currentClass.mcq.length > 0 && (
-                    <div className="bg-dark-800 p-8 rounded-xl border border-gray-700 shadow-lg">
-                        <h2 className="text-2xl font-bold text-white mb-6 border-b border-gray-700 pb-2">🧠 Knowledge Check</h2>
-                        <div className="space-y-8">
-                            {currentClass.mcq.map((q, qIdx) => (
-                                <div key={qIdx} className="p-4 rounded-lg bg-dark-900/50 border border-gray-800">
-                                    <p className="text-white font-medium text-lg mb-4"><span className="text-accent-500 mr-2">{qIdx + 1}.</span> {q.question}</p>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {q.options.map((opt, oIdx) => (
-                                            <button
-                                                key={oIdx}
-                                                onClick={() => handleOptionClick(qIdx, opt, q.answer)}
-                                                disabled={quizSubmitted}
-                                                className={`p-4 text-left rounded-lg border transition-all duration-200 flex justify-between items-center ${getOptionStyle(qIdx, opt)}`}
-                                            >
-                                                <span>{opt}</span>
-                                                {/* ONLY SHOW ICONS IF SUBMITTED */}
-                                                {quizSubmitted && mcqState[qIdx]?.selected === opt && (
-                                                    <span className="text-xl">{mcqState[qIdx].isCorrect ? '✅' : '❌'}</span>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        {!quizSubmitted ? (
-                            <button onClick={submitQuiz} className="mt-6 w-full py-3 bg-accent-500 hover:bg-indigo-600 text-white font-bold rounded-lg transition shadow-glow">
-                                Submit Answers
-                            </button>
-                        ) : (
-                            <div className="mt-6 text-center p-4 bg-dark-900 rounded-lg border border-gray-700">
-                                <p className="text-gray-400 text-sm">
-                                    Result submitted. 
-                                    <span className="text-white font-bold ml-2">
-                                        Check Playlist for status.
-                                    </span>
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* RIGHT COLUMN: Playlist & Progress */}
-            <div className="flex flex-col gap-4 sticky top-4 h-fit">
-                
-                {/* PROGRESS BAR */}
-                <div className="bg-dark-800 p-6 rounded-xl border border-gray-700 shadow-xl">
-                    <div className="flex justify-between items-end mb-2">
-                        <span className="text-white font-bold">Course Progress</span>
-                        <span className="text-accent-500 font-bold">{progressPercent}%</span>
-                    </div>
-                    <div className="w-full bg-dark-900 rounded-full h-3 overflow-hidden border border-gray-800">
-                        <div className="bg-gradient-to-r from-accent-500 to-purple-500 h-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-                    </div>
+                {/* --- LEFT COLUMN: CONTENT PLAYER (8 Columns) --- */}
+                <div className="lg:col-span-8 space-y-6">
                     
-                    {/* CERTIFICATE BUTTON */}
-                    {isCertificateReady() ? (
-                        <button onClick={downloadCertificate} className="mt-6 w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-glow animate-pulse">
-                            🎓 Download Certificate
-                        </button>
-                    ) : (
-                        <p className="text-xs text-gray-500 mt-3 text-center">
-                            Complete all classes & pass quizzes ({'>'}50%) to unlock certificate.
-                        </p>
+                    {/* VIDEO PLAYER */}
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 group"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
+                        <video
+                            key={`vid-${currentClass.video}`} 
+                            src={currentClass.video}
+                            controls
+                            controlsList="nodownload"
+                            className="w-full h-full object-contain relative z-0"
+                            preload="auto"
+                        />
+                    </motion.div>
+
+                    {/* LESSON TITLE & AUDIO */}
+                    <GlassCard>
+                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                             <div>
+                                 <h1 className="text-2xl font-bold text-white mb-2">
+                                     <span className="text-indigo-400 mr-2">#{activeClassIndex + 1}</span> 
+                                     Lesson Module
+                                 </h1>
+                                 <p className="text-sm text-gray-400 flex items-center gap-2">
+                                     <Video size={14} className="text-indigo-500"/> Video Lecture
+                                     {currentClass.audio && <>• <Music size={14} className="text-purple-500"/> Audio Available</>}
+                                     {currentClass.text && <>• <FileText size={14} className="text-blue-500"/> Reading Notes</>}
+                                 </p>
+                             </div>
+                             {currentClass.audio && (
+                                <div className="bg-black/30 p-2 rounded-xl border border-white/10 flex items-center gap-3 min-w-[200px]">
+                                    <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400">
+                                        <Music size={16} />
+                                    </div>
+                                    <audio 
+                                        key={`aud-${currentClass.audio}`}
+                                        src={currentClass.audio} 
+                                        controls 
+                                        className="h-8 w-32 md:w-48" 
+                                    />
+                                </div>
+                             )}
+                         </div>
+
+                         {/* TEXT CONTENT */}
+                         <div className="p-6 bg-black/20 rounded-xl border border-white/5">
+                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                 <BookOpen size={16} /> Transcript & Notes
+                             </h3>
+                             <div className="text-gray-300 leading-relaxed whitespace-pre-wrap text-base font-light">
+                                 {currentClass.text || <span className="text-gray-600 italic flex items-center gap-2"><AlertCircle size={14}/> No supplementary notes provided for this lesson.</span>}
+                             </div>
+                         </div>
+                    </GlassCard>
+
+                    {/* QUIZ SECTION */}
+                    {currentClass.mcq && currentClass.mcq.length > 0 && (
+                        <GlassCard className="border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                                    <HelpCircle className="text-indigo-400" />
+                                    Knowledge Check
+                                </h2>
+                                {quizSubmitted && (
+                                    <span className="px-3 py-1 bg-gray-800 text-gray-400 rounded-lg text-xs font-mono uppercase">
+                                        Quiz Completed
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <div className="space-y-8">
+                                {currentClass.mcq.map((q, qIdx) => (
+                                    <div key={qIdx} className="space-y-4">
+                                        <p className="text-lg text-white font-medium flex gap-3">
+                                            <span className="text-indigo-500 font-mono">0{qIdx + 1}.</span> 
+                                            {q.question}
+                                        </p>
+                                        <div className="grid grid-cols-1 gap-3 pl-8">
+                                            {q.options.map((opt, oIdx) => (
+                                                <button
+                                                    key={oIdx}
+                                                    onClick={() => handleOptionClick(qIdx, opt, q.answer)}
+                                                    disabled={quizSubmitted}
+                                                    className={`
+                                                        w-full text-left p-4 rounded-xl border transition-all duration-200 flex justify-between items-center group relative overflow-hidden
+                                                        ${getOptionStyle(qIdx, opt)}
+                                                    `}
+                                                >
+                                                    <span className="relative z-10">{opt}</span>
+                                                    {quizSubmitted && mcqState[qIdx]?.selected === opt && (
+                                                        <span className="text-xl relative z-10">
+                                                            {mcqState[qIdx].isCorrect ? <CheckCircle size={20}/> : <AlertCircle size={20}/>}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {!quizSubmitted ? (
+                                <motion.button 
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={submitQuiz} 
+                                    className="mt-8 w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all"
+                                >
+                                    Submit Answers
+                                </motion.button>
+                            ) : (
+                                <div className="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center">
+                                    <p className="text-indigo-300 flex items-center justify-center gap-2">
+                                        <CheckCircle size={18} />
+                                        Results recorded. Check the playlist sidebar for status.
+                                    </p>
+                                </div>
+                            )}
+                        </GlassCard>
                     )}
                 </div>
 
-                {/* PLAYLIST */}
-                <div className="bg-dark-800 rounded-xl border border-gray-700 flex flex-col shadow-xl overflow-hidden max-h-[60vh]">
-                    <div className="p-5 border-b border-gray-700 bg-dark-900/80 backdrop-blur-sm">
-                        <h3 className="font-bold text-white text-lg line-clamp-1">{course.title}</h3>
-                        <p className="text-sm text-gray-400 mt-1">{course.classes.length} Lessons • {course.instructorId?.name}</p>
-                    </div>
+                {/* --- RIGHT COLUMN: PLAYLIST & PROGRESS (4 Columns) --- */}
+                {/* FIX: Applied 'sticky' to the PARENT container and Flexbox for children to prevent overlap */}
+                <div className="lg:col-span-4 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] flex flex-col gap-6">
                     
-                    <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
-                        {course.classes.map((cls, idx) => {
-                            // Check Quiz Status
-                            const result = progressData.quizResults.find(r => r.classIndex === idx);
-                            const isVisited = progressData.completedClassIndices.includes(idx);
+                    {/* PROGRESS CARD (Fixed Height Flex Item) */}
+                    <GlassCard className="flex-shrink-0">
+                         <div className="flex justify-between items-end mb-4">
+                             <div>
+                                 <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Course Progress</h3>
+                                 <p className="text-3xl font-mono font-bold text-white">{progressPercent}%</p>
+                             </div>
+                             <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+                                 <Activity size={24} />
+                             </div>
+                         </div>
+                         
+                         {/* Progress Bar */}
+                         <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden mb-6 border border-white/5">
+                             <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressPercent}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" 
+                             />
+                         </div>
 
-                            return (
-                                <div
-                                    key={idx}
-                                    onClick={() => setActiveClassIndex(idx)}
-                                    className={`p-4 rounded-lg cursor-pointer transition flex items-start gap-4 group ${
-                                        idx === activeClassIndex
-                                            ? 'bg-accent-500 text-white shadow-md'
-                                            : 'hover:bg-dark-700 text-gray-400 hover:text-white'
-                                    }`}
+                         {/* Certificate Status */}
+                         <div className="p-4 bg-black/20 rounded-xl border border-white/5">
+                             {isCertificateReady() ? (
+                                <motion.button 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={downloadCertificate} 
+                                    className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
                                 >
-                                    <div className={`flex items-center justify-center min-w-[28px] h-[28px] rounded-full text-xs font-bold mt-0.5 ${
-                                        idx === activeClassIndex ? 'bg-white text-accent-500' : 'bg-dark-900 text-gray-500'
-                                    }`}>
-                                        {idx + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-bold line-clamp-2">Class {idx + 1}</p>
-                                        <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-wider opacity-70 mt-2 font-medium">
-                                            {cls.video && <span>📹 Video</span>}
-                                            {cls.mcq?.length > 0 && (
-                                                <span className={result ? (result.passed ? "text-green-300" : "text-red-300") : ""}>
-                                                    {result ? (result.passed ? "✅ Passed" : "❌ Failed") : "❓ Quiz"}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {isVisited && <span className="text-green-400 text-xs">✔</span>}
+                                    <Award size={18} />
+                                    Claim Certificate
+                                </motion.button>
+                             ) : (
+                                <div className="flex items-center gap-3 text-gray-500">
+                                    <Lock size={18} />
+                                    <p className="text-xs leading-relaxed">
+                                        Complete all lessons &amp; pass quizzes (&gt;50%) to unlock your certification.
+                                    </p>
                                 </div>
-                            );
-                        })}
+                             )}
+                         </div>
+                    </GlassCard>
+
+                    {/* PLAYLIST (Fills Remaining Height & Scrolls Internally) */}
+                    <div className="flex-1 bg-[#0b0f19] border border-white/10 rounded-2xl overflow-hidden flex flex-col min-h-0">
+                        <div className="p-5 border-b border-white/5 bg-gray-900/50 backdrop-blur-md flex-shrink-0 z-10">
+                            <h3 className="font-bold text-white text-base truncate">{course.title}</h3>
+                            <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">
+                                {course.classes.length} Modules • {course.instructorId?.name}
+                            </p>
+                        </div>
+
+                        <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar flex-1">
+                            {course.classes.map((cls, idx) => {
+                                const result = progressData.quizResults.find(r => r.classIndex === idx);
+                                const isVisited = progressData.completedClassIndices.includes(idx);
+                                const isActive = idx === activeClassIndex;
+
+                                return (
+                                    <motion.div
+                                        key={idx}
+                                        onClick={() => setActiveClassIndex(idx)}
+                                        whileHover={{ x: 4 }}
+                                        className={`
+                                            group cursor-pointer p-3 rounded-xl border transition-all duration-200 relative overflow-hidden flex-shrink-0
+                                            ${isActive 
+                                                ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' 
+                                                : 'bg-transparent border-transparent hover:bg-white/5'
+                                            }
+                                        `}
+                                    >
+                                        {/* Active Indicator Line */}
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500" />}
+
+                                        <div className="flex gap-4">
+                                            {/* Number/Icon */}
+                                            <div className={`
+                                                w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono transition-colors flex-shrink-0
+                                                ${isActive ? 'bg-indigo-500 text-white' : 'bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-white'}
+                                            `}>
+                                                {isVisited ? <CheckCircle size={14} /> : idx + 1}
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <p className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                                                        Class {idx + 1}
+                                                    </p>
+                                                    {isActive && <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse flex-shrink-0" />}
+                                                </div>
+                                                
+                                                {/* Meta Badges */}
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    {cls.video && (
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 uppercase font-bold tracking-wider">
+                                                            Video
+                                                        </span>
+                                                    )}
+                                                    {cls.mcq?.length > 0 && (
+                                                        <span className={`
+                                                            text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider border
+                                                            ${result 
+                                                                ? (result.passed ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20") 
+                                                                : "bg-gray-800 text-gray-500 border-transparent"
+                                                            }
+                                                        `}>
+                                                            {result ? (result.passed ? "Passed" : "Failed") : "Quiz"}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     );
 };
