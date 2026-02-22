@@ -19,7 +19,7 @@ const Navbar = () => {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "circOut" }}
-      className="fixed top-0 left-0 right-0 z-50 px-6 py-4 border-b border-white/5 bg-[#030712]/70 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+      className="fixed top-0 left-0 right-0 z-50 px-6 py-4 border-b border-[#50C878]/20 bg-[#013220]/70 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         
@@ -28,13 +28,13 @@ const Navbar = () => {
           <motion.div 
             whileHover={{ rotate: 180 }}
             transition={{ duration: 0.6 }}
-            className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/50 transition-colors"
+            className="p-1.5 rounded-lg bg-[#50C878]/10 border border-[#50C878]/20 group-hover:border-[#50C878]/50 transition-colors"
           >
-            <Cpu size={20} className="text-indigo-400" />
+            <Cpu size={20} className="text-[#50C878]" />
           </motion.div>
-          <span className="text-2xl font-black tracking-tighter text-white">
+          <span className="text-2xl font-black tracking-tighter text-[#D1F2EB]">
             LMS
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#50C878] to-[#0B6E4F]">
               .SIM
             </span>
           </span>
@@ -48,13 +48,13 @@ const Navbar = () => {
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-[#50C878]/30"
               >
-                <div className="p-1 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
-                   <User size={12} className="text-white" />
+                <div className="p-1 rounded-full bg-gradient-to-br from-[#50C878] to-[#0B6E4F]">
+                   <User size={12} className="text-[#D1F2EB]" />
                 </div>
-                <span className="text-xs text-gray-400">
-                  Operative: <span className="text-indigo-300 font-mono font-bold uppercase tracking-wider">{user.role}</span>
+                <span className="text-xs text-[#D1F2EB]/70">
+                  Operative: <span className="text-[#D1F2EB] font-mono font-bold uppercase tracking-wider">{user.role}</span>
                 </span>
               </motion.div>
 
@@ -74,7 +74,7 @@ const Navbar = () => {
               {/* Login Link */}
               <Link to="/login">
                 <motion.div 
-                  className="text-gray-400 hover:text-white font-medium text-sm transition-colors flex items-center gap-2"
+                  className="text-[#D1F2EB]/70 hover:text-[#D1F2EB] font-medium text-sm transition-colors flex items-center gap-2"
                   whileHover={{ x: -2 }}
                 >
                   <LogIn size={16} />
@@ -87,7 +87,7 @@ const Navbar = () => {
                 <motion.button 
                   whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(99, 102, 241, 0.4)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative overflow-hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg font-bold text-sm flex items-center gap-2"
+                  className="relative overflow-hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] text-[#D1F2EB] shadow-lg font-bold text-sm flex items-center gap-2"
                 >
                   <span className="relative z-10">Get Access</span>
                   <Sparkles size={16} className="relative z-10 text-purple-200" />

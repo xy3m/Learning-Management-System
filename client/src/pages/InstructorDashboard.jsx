@@ -18,8 +18,8 @@ const GlassCard = ({ children, className = "" }) => (
     animate={{ opacity: 1, y: 0 }}
     className={`
       relative overflow-hidden
-      bg-gray-900/40 backdrop-blur-xl 
-      border border-white/5 shadow-xl
+      bg-[#013220]/40 backdrop-blur-xl 
+      border border-[#50C878]/20 shadow-xl
       rounded-2xl p-8 
       ${className}
     `}
@@ -34,16 +34,16 @@ const TabButton = ({ active, onClick, label, icon: Icon }) => (
     onClick={onClick} 
     className={`
       relative flex items-center gap-3 px-8 py-4 rounded-xl transition-all duration-300 font-bold text-base z-10
-      ${active ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+      ${active ? 'text-[#D1F2EB]' : 'text-[#D1F2EB]/70 hover:text-[#D1F2EB] hover:bg-white/5'}
     `}
   >
     {active && (
       <motion.div 
         layoutId="activeTab"
-        className="absolute inset-0 bg-indigo-600/20 border border-indigo-500/30 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+        className="absolute inset-0 bg-[#0B6E4F]/20 border border-[#50C878]/30 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"
       />
     )}
-    <Icon size={20} className={active ? "text-indigo-400" : ""} />
+    <Icon size={20} className={active ? "text-[#50C878]" : ""} />
     <span className="relative z-10">{label}</span>
   </button>
 );
@@ -209,17 +209,17 @@ const InstructorDashboard = () => {
   // --- RENDER: 1. BANK SETUP (If missing) ---
   if (user && !user.bankAccountId) {
     return (
-      <div className="absolute inset-0 w-full h-full bg-[#030712] flex items-center justify-center p-6 overflow-hidden z-50">
+      <div className="absolute inset-0 w-full h-full bg-[#013220] flex items-center justify-center p-6 overflow-hidden z-50">
         <Toaster position="top-center" />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
         
-        <GlassCard className="max-w-lg w-full relative z-10 border-indigo-500/20 shadow-[0_0_50px_-12px_rgba(99,102,241,0.2)]">
+        <GlassCard className="max-w-lg w-full relative z-10 border-[#50C878]/20 shadow-[0_0_50px_-12px_rgba(99,102,241,0.2)]">
           <div className="text-center mb-8">
-             <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/20">
-                <Wallet className="text-indigo-400" size={40} />
+             <div className="w-20 h-20 bg-[#50C878]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#50C878]/20">
+                <Wallet className="text-[#50C878]" size={40} />
              </div>
-             <h2 className="text-3xl font-bold text-white mb-3">Setup Payout Account</h2>
-             <p className="text-gray-400 text-base">Link a bank account to receive your <span className="text-white font-bold">60% revenue share</span>.</p>
+             <h2 className="text-3xl font-bold text-[#D1F2EB] mb-3">Setup Payout Account</h2>
+             <p className="text-[#D1F2EB]/70 text-base">Link a bank account to receive your <span className="text-[#D1F2EB] font-bold">60% revenue share</span>.</p>
           </div>
           
           <form onSubmit={handleBankSetup} className="space-y-6">
@@ -228,7 +228,7 @@ const InstructorDashboard = () => {
               <input 
                 type="text" 
                 placeholder="e.g. INST-888-999" 
-                className="w-full bg-black/40 border border-gray-700 text-white rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
+                className="w-full bg-[#013220]/40 border border-gray-700 text-[#D1F2EB] rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
                 onChange={e => setBankData({...bankData, accountNumber: e.target.value})}
                 required
               />
@@ -238,7 +238,7 @@ const InstructorDashboard = () => {
               <input 
                 type="password" 
                 placeholder="Secret PIN" 
-                className="w-full bg-black/40 border border-gray-700 text-white rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
+                className="w-full bg-[#013220]/40 border border-gray-700 text-[#D1F2EB] rounded-xl py-4 px-5 text-lg focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
                 onChange={e => setBankData({...bankData, secret: e.target.value})}
                 required
               />
@@ -246,7 +246,7 @@ const InstructorDashboard = () => {
             <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-500/20 transition-all mt-4"
+                className="w-full py-5 bg-[#0B6E4F] hover:bg-[#50C878] text-[#D1F2EB] font-bold text-lg rounded-xl shadow-lg shadow-[#50C878]/20 transition-all mt-4"
             >
                 Initialize Account
             </motion.button>
@@ -258,34 +258,34 @@ const InstructorDashboard = () => {
 
   // --- RENDER: 2. MAIN DASHBOARD ---
   return (
-    <div className="absolute inset-0 w-full min-h-screen bg-[#030712] text-gray-200 overflow-x-hidden overflow-y-auto">
+    <div className="absolute inset-0 w-full min-h-screen bg-[#013220] text-gray-200 overflow-x-hidden overflow-y-auto">
       <div className="pt-28 pb-20 w-full"> {/* Padding for Fixed Navbar */}
       
       <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
       
       {/* --- DASHBOARD HEADER --- */}
       <div className="w-full px-8 mb-10">
-        <div className="bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
+        <div className="bg-[#013220]/60 backdrop-blur-md border border-[#50C878]/30 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
           
           <div className="flex items-center gap-6">
-             <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-               <LayoutDashboard className="text-purple-400" size={40} />
+             <div className="p-4 bg-[#0B6E4F]/10 rounded-2xl border border-[#0B6E4F]/20 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+               <LayoutDashboard className="text-[#50C878]" size={40} />
              </div>
              <div>
-               <h1 className="text-4xl font-bold text-white tracking-tight mb-1">Instructor<span className="text-purple-400">Studio</span></h1>
-               <p className="text-base text-gray-400 font-mono uppercase tracking-wider">Content Command Center</p>
+               <h1 className="text-4xl font-bold text-[#D1F2EB] tracking-tight mb-1">Instructor<span className="text-[#50C878]">Studio</span></h1>
+               <p className="text-base text-[#D1F2EB]/70 font-mono uppercase tracking-wider">Content Command Center</p>
              </div>
           </div>
 
           <div className="flex items-center gap-8">
              {/* Balance Card */}
-             <div className="flex items-center gap-6 px-8 py-4 rounded-2xl bg-black/40 border border-gray-700/50 shadow-inner">
+             <div className="flex items-center gap-6 px-8 py-4 rounded-2xl bg-[#013220]/40 border border-gray-700/50 shadow-inner">
                 <div className="p-3 rounded-full bg-green-500/10 text-green-400">
                    <TrendingUp size={32} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400 uppercase tracking-widest font-bold">Total Earnings</p>
-                  <p className="text-3xl font-mono font-bold text-white">৳{balance.toLocaleString()}</p>
+                  <p className="text-sm text-[#D1F2EB]/70 uppercase tracking-widest font-bold">Total Earnings</p>
+                  <p className="text-3xl font-mono font-bold text-[#D1F2EB]">৳{balance.toLocaleString()}</p>
                 </div>
              </div>
           </div>
@@ -296,7 +296,7 @@ const InstructorDashboard = () => {
         
         {/* --- TABS --- */}
         <div className="flex justify-center mb-12">
-          <div className="bg-gray-900/50 p-2 rounded-2xl border border-white/5 flex flex-wrap gap-3 justify-center shadow-lg">
+          <div className="bg-[#013220]/50 p-2 rounded-2xl border border-[#50C878]/20 flex flex-wrap gap-3 justify-center shadow-lg">
             <TabButton 
               active={activeTab === 'courses'} 
               onClick={() => setActiveTab('courses')} 
@@ -334,11 +334,11 @@ const InstructorDashboard = () => {
                                 whileHover={{ borderColor: "rgba(139, 92, 246, 0.3)" }}
                             >
                                 {/* Ambient Glow */}
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-[#0B6E4F]/10 rounded-full blur-[60px] pointer-events-none" />
 
                                 {/* Form Header */}
                                 <div className="flex items-center gap-4 mb-8 relative z-10">
-                                    {isEditing ? <Edit3 className="text-purple-400" size={28} /> : <Plus className="text-purple-400" size={28} />}
+                                    {isEditing ? <Edit3 className="text-[#50C878]" size={28} /> : <Plus className="text-[#50C878]" size={28} />}
                                     <h2 className="font-bold uppercase text-2xl text-purple-100 tracking-wider">
                                         {isEditing ? "Edit Course" : "Create New Course"}
                                     </h2>
@@ -348,7 +348,7 @@ const InstructorDashboard = () => {
                                     <div>
                                         <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Title</label>
                                         <input 
-                                            className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-gray-500" 
+                                            className="w-full bg-[#27272a] border border-gray-700/50 text-[#D1F2EB] rounded-xl p-5 text-xl focus:outline-none focus:border-[#0B6E4F] focus:ring-1 focus:ring-[#0B6E4F] transition-all placeholder:text-gray-500" 
                                             placeholder="e.g. Advanced Python" 
                                             value={courseData.title} 
                                             onChange={e => setCourseData({...courseData, title: e.target.value})} 
@@ -359,7 +359,7 @@ const InstructorDashboard = () => {
                                         <div>
                                             <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Price (৳)</label>
                                             <input 
-                                                className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 transition-all" 
+                                                className="w-full bg-[#27272a] border border-gray-700/50 text-[#D1F2EB] rounded-xl p-5 text-xl focus:outline-none focus:border-[#0B6E4F] transition-all" 
                                                 type="number" 
                                                 placeholder="5000" 
                                                 value={courseData.price} 
@@ -370,7 +370,7 @@ const InstructorDashboard = () => {
                                         <div>
                                             <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Classes</label>
                                             <input 
-                                                className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-xl focus:outline-none focus:border-purple-500 transition-all" 
+                                                className="w-full bg-[#27272a] border border-gray-700/50 text-[#D1F2EB] rounded-xl p-5 text-xl focus:outline-none focus:border-[#0B6E4F] transition-all" 
                                                 type="number" 
                                                 placeholder="10" 
                                                 min="1" 
@@ -384,7 +384,7 @@ const InstructorDashboard = () => {
                                     <div>
                                         <label className="text-sm font-bold text-gray-500 uppercase ml-1 tracking-wider mb-2 block">Description</label>
                                         <textarea 
-                                            className="w-full bg-[#27272a] border border-gray-700/50 text-white rounded-xl p-5 text-lg h-48 resize-none focus:outline-none focus:border-purple-500 transition-all placeholder:text-gray-500" 
+                                            className="w-full bg-[#27272a] border border-gray-700/50 text-[#D1F2EB] rounded-xl p-5 text-lg h-48 resize-none focus:outline-none focus:border-[#0B6E4F] transition-all placeholder:text-gray-500" 
                                             placeholder="What will students learn?" 
                                             value={courseData.description} 
                                             onChange={e => setCourseData({...courseData, description: e.target.value})} 
@@ -393,11 +393,11 @@ const InstructorDashboard = () => {
                                     </div>
                                     
                                     <div className="flex gap-4 pt-4">
-                                        <button className="flex-1 py-5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xl rounded-xl shadow-lg shadow-purple-500/30 transition-all transform hover:-translate-y-1">
+                                        <button className="flex-1 py-5 bg-[#0B6E4F] hover:bg-[#0B6E4F] text-[#D1F2EB] font-bold text-xl rounded-xl shadow-lg shadow-[#0B6E4F]/30 transition-all transform hover:-translate-y-1">
                                             Next: Add Content →
                                         </button>
                                         {isEditing && (
-                                            <button type="button" onClick={cancelEdit} className="px-8 py-5 border border-gray-600 text-gray-400 hover:text-white rounded-xl transition-all font-bold text-lg">
+                                            <button type="button" onClick={cancelEdit} className="px-8 py-5 border border-gray-600 text-[#D1F2EB]/70 hover:text-[#D1F2EB] rounded-xl transition-all font-bold text-lg">
                                                 Cancel
                                             </button>
                                         )}
@@ -409,8 +409,8 @@ const InstructorDashboard = () => {
                         {/* Course List - STACKED FULL WIDTH */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-6 mb-6">
-                                <h2 className="text-4xl font-bold text-white">My Library</h2>
-                                <span className="px-5 py-2 rounded-full bg-purple-500/20 text-purple-300 font-bold text-base border border-purple-500/30">
+                                <h2 className="text-4xl font-bold text-[#D1F2EB]">My Library</h2>
+                                <span className="px-5 py-2 rounded-full bg-[#0B6E4F]/20 text-purple-300 font-bold text-base border border-[#0B6E4F]/30">
                                     {courses.length} Courses
                                 </span>
                             </div>
@@ -418,25 +418,25 @@ const InstructorDashboard = () => {
                             {/* UPDATED: flex-col ensures cards stack vertically and take full width */}
                             <div className="flex flex-col gap-6">
                                 {courses.map(c => (
-                                    <GlassCard key={c._id} className="group hover:border-purple-500/30 transition-all w-full">
+                                    <GlassCard key={c._id} className="group hover:border-[#0B6E4F]/30 transition-all w-full">
                                         <div className="flex flex-col h-full justify-between">
                                             <div>
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <h3 className="text-2xl font-bold text-white line-clamp-1" title={c.title}>{c.title}</h3>
+                                                    <h3 className="text-2xl font-bold text-[#D1F2EB] line-clamp-1" title={c.title}>{c.title}</h3>
                                                     {c.status === 'approved' 
                                                         ? <CheckCircle size={28} className="text-green-500 flex-shrink-0" />
                                                         : <Clock size={28} className="text-yellow-500 flex-shrink-0" />
                                                     }
                                                 </div>
-                                                <p className="text-base text-gray-400 line-clamp-2 mb-6 h-12 leading-relaxed">{c.description}</p>
+                                                <p className="text-base text-[#D1F2EB]/70 line-clamp-2 mb-6 h-12 leading-relaxed">{c.description}</p>
                                                 
                                                 <div className="flex items-center gap-4 text-sm font-mono text-gray-500 mb-6">
-                                                    <span className="bg-gray-800 px-4 py-2 rounded-lg">৳{c.price}</span>
-                                                    <span className="bg-gray-800 px-4 py-2 rounded-lg">{c.classes.length} Modules</span>
+                                                    <span className="bg-[#0B6E4F] px-4 py-2 rounded-lg">৳{c.price}</span>
+                                                    <span className="bg-[#0B6E4F] px-4 py-2 rounded-lg">{c.classes.length} Modules</span>
                                                 </div>
                                             </div>
 
-                                            <div className="border-t border-white/5 pt-5 flex justify-between items-center">
+                                            <div className="border-t border-[#50C878]/20 pt-5 flex justify-between items-center">
                                                 <span className={`text-sm uppercase font-bold tracking-wider px-3 py-1.5 rounded ${
                                                     c.status === 'approved' ? 'text-green-400 bg-green-900/20' : 'text-yellow-400 bg-yellow-900/20'
                                                 }`}>
@@ -445,10 +445,10 @@ const InstructorDashboard = () => {
                                                 
                                                 {c.status !== 'approved' ? (
                                                     <div className="flex gap-3">
-                                                        <button onClick={() => handleEdit(c)} className="p-3 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-white transition">
+                                                        <button onClick={() => handleEdit(c)} className="p-3 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500 hover:text-[#D1F2EB] transition">
                                                             <Edit3 size={20} />
                                                         </button>
-                                                        <button onClick={() => handleDelete(c._id)} className="p-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition">
+                                                        <button onClick={() => handleDelete(c._id)} className="p-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-[#D1F2EB] transition">
                                                             <Trash2 size={20} />
                                                         </button>
                                                     </div>
@@ -462,7 +462,7 @@ const InstructorDashboard = () => {
                                     </GlassCard>
                                 ))}
                                 {courses.length === 0 && (
-                                    <div className="w-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl bg-black/20">
+                                    <div className="w-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl bg-[#013220]/20">
                                         <p className="text-gray-500 text-xl">No courses uploaded yet.</p>
                                         <p className="text-gray-600 text-base mt-2">Use the form on the left to create your first course.</p>
                                     </div>
@@ -494,12 +494,12 @@ const InstructorDashboard = () => {
             >
                <GlassCard className="min-h-[600px] p-10">
                   <div className="flex justify-between items-center mb-10">
-                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                         <History size={32} className="text-purple-400" />
+                     <h2 className="text-3xl font-bold text-[#D1F2EB] flex items-center gap-3">
+                         <History size={32} className="text-[#50C878]" />
                          Recent Payouts
                      </h2>
                      {transactions.length > 0 && (
-                         <button onClick={handleClearHistory} className="text-base font-bold text-red-400 hover:text-white border border-red-500/30 px-6 py-3 rounded-xl hover:bg-red-500 transition">
+                         <button onClick={handleClearHistory} className="text-base font-bold text-red-400 hover:text-[#D1F2EB] border border-red-500/30 px-6 py-3 rounded-xl hover:bg-red-500 transition">
                              Purge History
                          </button>
                      )}
@@ -508,12 +508,12 @@ const InstructorDashboard = () => {
                   {transactions.length === 0 ? <p className="text-gray-600 text-xl text-center mt-32">No transaction records found.</p> : (
                       <div className="space-y-4">
                           {transactions.map(tx => (
-                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-2xl bg-black/20 hover:bg-white/5 transition-colors text-lg border border-white/5">
+                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-2xl bg-[#013220]/20 hover:bg-white/5 transition-colors text-lg border border-[#50C878]/20">
                                   <div className="col-span-5">
-                                      <p className="font-bold text-white truncate text-xl">{tx.courseId?.title || "Unknown Course"}</p>
+                                      <p className="font-bold text-[#D1F2EB] truncate text-xl">{tx.courseId?.title || "Unknown Course"}</p>
                                       <div className="flex items-center gap-3 mt-2">
                                           <span className="text-base text-gray-500 uppercase font-bold">Student:</span>
-                                          <span className="text-base text-purple-300 font-medium px-2 py-0.5 bg-purple-500/10 rounded">{tx.learnerId?.name}</span>
+                                          <span className="text-base text-purple-300 font-medium px-2 py-0.5 bg-[#0B6E4F]/10 rounded">{tx.learnerId?.name}</span>
                                       </div>
                                       <p className="text-sm text-gray-600 mt-1">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
                                   </div>
@@ -522,7 +522,7 @@ const InstructorDashboard = () => {
                                       <span className={`text-sm px-4 py-2 rounded-full uppercase font-bold border tracking-wide ${
                                            tx.status === 'completed' ? 'text-green-400 bg-green-500/10 border-green-500/20' :
                                            tx.status === 'pending_instructor' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' : 
-                                           tx.status.includes('declined') ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-gray-400 bg-gray-500/10 border-white/10'
+                                           tx.status.includes('declined') ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-[#D1F2EB]/70 bg-gray-500/10 border-[#50C878]/30'
                                       }`}>
                                           {tx.status === 'declined_instructor' ? 'REJECTED' : tx.status.replace('_', ' ')}
                                       </span>
@@ -531,11 +531,11 @@ const InstructorDashboard = () => {
                                   <div className="col-span-4 text-right flex flex-col items-end gap-3">
                                        {tx.status === 'pending_instructor' ? (
                                            <div className="flex gap-3">
-                                               <button onClick={() => handleTxAction(tx._id, 'approve')} className="px-5 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-green-500/20">Accept</button>
-                                               <button onClick={() => handleTxAction(tx._id, 'decline')} className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-red-600/20">Reject</button>
+                                               <button onClick={() => handleTxAction(tx._id, 'approve')} className="px-5 py-2 bg-green-600 hover:bg-green-500 text-[#D1F2EB] rounded-lg text-sm font-bold transition shadow-lg shadow-green-500/20">Accept</button>
+                                               <button onClick={() => handleTxAction(tx._id, 'decline')} className="px-5 py-2 bg-red-600 hover:bg-red-500 text-[#D1F2EB] rounded-lg text-sm font-bold transition shadow-lg shadow-red-600/20">Reject</button>
                                            </div>
                                        ) : (
-                                          <span className="text-gray-400 font-mono text-2xl font-bold">
+                                          <span className="text-[#D1F2EB]/70 font-mono text-2xl font-bold">
                                               {tx.status === 'completed' ? '+' : ''}৳{Math.floor(tx.amount * 0.6)}
                                           </span>
                                        )}

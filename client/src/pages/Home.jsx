@@ -38,7 +38,7 @@ const GlassCard = ({ children, className = "" }) => (
     transition={{ duration: 0.5, type: "spring" }}
     className={`
       relative overflow-hidden
-      bg-gray-900/40 backdrop-blur-xl 
+      bg-[#013220]/40 backdrop-blur-xl 
       shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]
       rounded-2xl p-8 
       ${className}
@@ -119,14 +119,14 @@ const Home = () => {
   if (!user) {
     return (
       // FIX: Use 'fixed inset-0' to force background to cover the ENTIRE viewport absolutely
-      <div className="fixed inset-0 w-full h-full bg-[#030712] text-white overflow-hidden">
+      <div className="fixed inset-0 w-full h-full bg-[#013220] text-[#D1F2EB] overflow-hidden">
         <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
         
         {/* Background Layer */}
         <div className="absolute inset-0 z-0">
             {/* Ambient Glow Orbs */}
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-1000" />
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#0B6E4F]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#0B6E4F]/20 rounded-full blur-[120px] mix-blend-screen animate-pulse delay-1000" />
             <BackgroundChart />
         </div>
 
@@ -139,7 +139,7 @@ const Home = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <motion.div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-indigo-300 mb-6 backdrop-blur-md"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-[#D1F2EB] mb-6 backdrop-blur-md"
                 whileHover={{ scale: 1.05 }}
               >
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"/>
@@ -147,13 +147,13 @@ const Home = () => {
               </motion.div>
 
               <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-6">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 animate-gradient-x">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#50C878] via-[#50C878] to-[#50C878] animate-gradient-x">
                   Future of Learning
                 </span>
               </h1>
               
-              <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Simulating the entire ecosystem of <span className="text-white font-semibold">Knowledge & Commerce</span>. 
+              <p className="text-xl text-[#D1F2EB]/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Simulating the entire ecosystem of <span className="text-[#D1F2EB] font-semibold">Knowledge & Commerce</span>. 
                 Master skills while managing a virtual economy.
               </p>
 
@@ -167,9 +167,9 @@ const Home = () => {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                    className="w-full sm:w-auto px-8 py-4 bg-[#013220] text-[#D1F2EB] rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 flex items-center justify-center gap-2 group"
                   >
-                    <LayoutDashboard size={20} className="text-gray-400 group-hover:text-white transition-colors"/>
+                    <LayoutDashboard size={20} className="text-[#D1F2EB]/70 group-hover:text-[#D1F2EB] transition-colors"/>
                     Access Terminal
                   </motion.button>
                 </Link>
@@ -178,7 +178,7 @@ const Home = () => {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] text-[#D1F2EB] rounded-xl shadow-lg hover:shadow-[#50C878]/50 transition-all duration-300 font-semibold flex items-center justify-center gap-2"
                   >
                     Initialize Protocol
                     <ArrowRight size={20} />
@@ -195,7 +195,7 @@ const Home = () => {
   // 2. Logged In View (Setup Form) - Also using Fixed Inset
   if (!user.bankAccountId && user.role !== 'lms-admin') {
     return (
-      <div className="fixed inset-0 w-full h-full bg-[#030712] flex items-center justify-center p-4 overflow-hidden">
+      <div className="fixed inset-0 w-full h-full bg-[#013220] flex items-center justify-center p-4 overflow-hidden">
          <Toaster position="top-center" />
          
          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
@@ -207,25 +207,25 @@ const Home = () => {
               <ShieldCheck size={32} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">Action Required</h2>
-              <p className="text-gray-400 text-sm">Link Simulated Finance API</p>
+              <h2 className="text-2xl font-bold text-[#D1F2EB]">Action Required</h2>
+              <p className="text-[#D1F2EB]/70 text-sm">Link Simulated Finance API</p>
             </div>
           </div>
 
-          <p className="text-gray-300 mb-8 leading-relaxed pl-1">
+          <p className="text-[#D1F2EB]/90 mb-8 leading-relaxed pl-1">
             To participate in the ecosystem, you must initialize your banking node. 
             <span className="block mt-2 text-xs text-gray-500 font-mono">ENCRYPTION: AES-256-GCM // SIMULATION MODE</span>
           </p>
           
           <form onSubmit={handleBankSetup} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Account Identifier</label>
+              <label className="text-xs font-semibold text-[#D1F2EB]/70 uppercase tracking-wider ml-1">Account Identifier</label>
               <div className="relative group">
-                <CreditCard className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                <CreditCard className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" size={18} />
                 <input
                   type="text"
                   placeholder="e.g. 123-456-789"
-                  className="w-full bg-black/40 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
+                  className="w-full bg-[#013220]/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
                   onChange={e => setBankData({...bankData, accountNumber: e.target.value})}
                   required
                 />
@@ -233,13 +233,13 @@ const Home = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Secret PIN</label>
+              <label className="text-xs font-semibold text-[#D1F2EB]/70 uppercase tracking-wider ml-1">Secret PIN</label>
               <div className="relative group">
-                <span className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-indigo-400 font-mono text-sm">***</span>
+                <span className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-[#50C878] font-mono text-sm">***</span>
                 <input
                   type="password"
                   placeholder="Secret PIN"
-                  className="w-full bg-black/40 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
+                  className="w-full bg-[#013220]/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
                   onChange={e => setBankData({...bankData, secret: e.target.value})}
                   required
                 />
@@ -249,7 +249,7 @@ const Home = () => {
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-red-500/25 transition-all mt-4"
+              className="w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 text-[#D1F2EB] font-bold rounded-xl shadow-lg hover:shadow-red-500/25 transition-all mt-4"
             >
               Initialize Banking Node
             </motion.button>
@@ -258,7 +258,7 @@ const Home = () => {
           <div className="mt-8 pt-6 text-center">
              <button 
                 onClick={handleLogout} 
-                className="text-xs text-gray-500 hover:text-white transition-colors uppercase tracking-widest hover:underline"
+                className="text-xs text-gray-500 hover:text-[#D1F2EB] transition-colors uppercase tracking-widest hover:underline"
               >
                Terminate Session
              </button>

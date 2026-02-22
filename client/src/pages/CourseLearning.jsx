@@ -17,8 +17,8 @@ const GlassCard = ({ children, className = "" }) => (
     animate={{ opacity: 1, y: 0 }}
     className={`
       relative overflow-hidden
-      bg-gray-900/40 backdrop-blur-xl 
-      border border-white/5 shadow-xl
+      bg-[#013220]/40 backdrop-blur-xl 
+      border border-[#50C878]/20 shadow-xl
       rounded-2xl p-6 
       ${className}
     `}
@@ -143,8 +143,8 @@ const CourseLearning = () => {
 
         if (!quizSubmitted) {
             return isSelected 
-                ? "bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
-                : "bg-black/20 border-white/5 hover:bg-white/5 text-gray-400";
+                ? "bg-[#0B6E4F]/20 border-[#50C878] text-[#D1F2EB] shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
+                : "bg-[#013220]/20 border-[#50C878]/20 hover:bg-white/5 text-[#D1F2EB]/70";
         }
 
         if (isSelected) {
@@ -157,13 +157,13 @@ const CourseLearning = () => {
              return "bg-green-500/10 border-green-500/30 text-green-400/70 border-dashed";
         }
 
-        return "bg-black/20 border-white/5 opacity-50"; 
+        return "bg-[#013220]/20 border-[#50C878]/20 opacity-50"; 
     };
 
     if (!course) return (
-        <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+        <div className="min-h-screen bg-[#013220] flex items-center justify-center">
             <div className="animate-pulse flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"/>
+                <div className="w-12 h-12 border-4 border-[#50C878] border-t-transparent rounded-full animate-spin"/>
                 <span className="text-gray-500 font-mono text-sm">LOADING NEURAL LINK...</span>
             </div>
         </div>
@@ -173,7 +173,7 @@ const CourseLearning = () => {
     const progressPercent = Math.round((progressData.completedClassIndices.length / course.classes.length) * 100);
 
     return (
-        <div className="min-h-screen bg-[#030712] text-gray-200 pt-24 pb-10 px-6">
+        <div className="min-h-screen bg-[#013220] text-gray-200 pt-24 pb-10 px-6">
             <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -185,7 +185,7 @@ const CourseLearning = () => {
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 group"
+                        className="relative aspect-video bg-[#013220] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-[#50C878]/30 group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
                         <video
@@ -202,19 +202,19 @@ const CourseLearning = () => {
                     <GlassCard>
                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                              <div>
-                                 <h1 className="text-2xl font-bold text-white mb-2">
-                                     <span className="text-indigo-400 mr-2">#{activeClassIndex + 1}</span> 
+                                 <h1 className="text-2xl font-bold text-[#D1F2EB] mb-2">
+                                     <span className="text-[#50C878] mr-2">#{activeClassIndex + 1}</span> 
                                      Lesson Module
                                  </h1>
-                                 <p className="text-sm text-gray-400 flex items-center gap-2">
-                                     <Video size={14} className="text-indigo-500"/> Video Lecture
-                                     {currentClass.audio && <>• <Music size={14} className="text-purple-500"/> Audio Available</>}
+                                 <p className="text-sm text-[#D1F2EB]/70 flex items-center gap-2">
+                                     <Video size={14} className="text-[#50C878]"/> Video Lecture
+                                     {currentClass.audio && <>• <Music size={14} className="text-[#0B6E4F]"/> Audio Available</>}
                                      {currentClass.text && <>• <FileText size={14} className="text-blue-500"/> Reading Notes</>}
                                  </p>
                              </div>
                              {currentClass.audio && (
-                                <div className="bg-black/30 p-2 rounded-xl border border-white/10 flex items-center gap-3 min-w-[200px]">
-                                    <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400">
+                                <div className="bg-[#013220]/30 p-2 rounded-xl border border-[#50C878]/30 flex items-center gap-3 min-w-[200px]">
+                                    <div className="p-2 bg-[#0B6E4F]/20 rounded-lg text-[#50C878]">
                                         <Music size={16} />
                                     </div>
                                     <audio 
@@ -228,11 +228,11 @@ const CourseLearning = () => {
                          </div>
 
                          {/* TEXT CONTENT */}
-                         <div className="p-6 bg-black/20 rounded-xl border border-white/5">
+                         <div className="p-6 bg-[#013220]/20 rounded-xl border border-[#50C878]/20">
                              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                  <BookOpen size={16} /> Transcript & Notes
                              </h3>
-                             <div className="text-gray-300 leading-relaxed whitespace-pre-wrap text-base font-light">
+                             <div className="text-[#D1F2EB]/90 leading-relaxed whitespace-pre-wrap text-base font-light">
                                  {currentClass.text || <span className="text-gray-600 italic flex items-center gap-2"><AlertCircle size={14}/> No supplementary notes provided for this lesson.</span>}
                              </div>
                          </div>
@@ -240,14 +240,14 @@ const CourseLearning = () => {
 
                     {/* QUIZ SECTION */}
                     {currentClass.mcq && currentClass.mcq.length > 0 && (
-                        <GlassCard className="border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
-                            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                                <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                                    <HelpCircle className="text-indigo-400" />
+                        <GlassCard className="border-[#50C878]/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                            <div className="flex justify-between items-center mb-8 border-b border-[#50C878]/30 pb-4">
+                                <h2 className="text-xl font-bold text-[#D1F2EB] flex items-center gap-3">
+                                    <HelpCircle className="text-[#50C878]" />
                                     Knowledge Check
                                 </h2>
                                 {quizSubmitted && (
-                                    <span className="px-3 py-1 bg-gray-800 text-gray-400 rounded-lg text-xs font-mono uppercase">
+                                    <span className="px-3 py-1 bg-[#0B6E4F] text-[#D1F2EB]/70 rounded-lg text-xs font-mono uppercase">
                                         Quiz Completed
                                     </span>
                                 )}
@@ -256,8 +256,8 @@ const CourseLearning = () => {
                             <div className="space-y-8">
                                 {currentClass.mcq.map((q, qIdx) => (
                                     <div key={qIdx} className="space-y-4">
-                                        <p className="text-lg text-white font-medium flex gap-3">
-                                            <span className="text-indigo-500 font-mono">0{qIdx + 1}.</span> 
+                                        <p className="text-lg text-[#D1F2EB] font-medium flex gap-3">
+                                            <span className="text-[#50C878] font-mono">0{qIdx + 1}.</span> 
                                             {q.question}
                                         </p>
                                         <div className="grid grid-cols-1 gap-3 pl-8">
@@ -289,13 +289,13 @@ const CourseLearning = () => {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={submitQuiz} 
-                                    className="mt-8 w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all"
+                                    className="mt-8 w-full py-4 bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] hover:from-[#50C878] hover:to-[#0B6E4F] text-[#D1F2EB] font-bold rounded-xl shadow-lg shadow-[#50C878]/20 transition-all"
                                 >
                                     Submit Answers
                                 </motion.button>
                             ) : (
-                                <div className="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center">
-                                    <p className="text-indigo-300 flex items-center justify-center gap-2">
+                                <div className="mt-8 p-4 bg-[#50C878]/10 border border-[#50C878]/20 rounded-xl text-center">
+                                    <p className="text-[#D1F2EB] flex items-center justify-center gap-2">
                                         <CheckCircle size={18} />
                                         Results recorded. Check the playlist sidebar for status.
                                     </p>
@@ -313,32 +313,32 @@ const CourseLearning = () => {
                     <GlassCard className="flex-shrink-0">
                          <div className="flex justify-between items-end mb-4">
                              <div>
-                                 <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Course Progress</h3>
-                                 <p className="text-3xl font-mono font-bold text-white">{progressPercent}%</p>
+                                 <h3 className="text-[#D1F2EB]/70 text-xs font-bold uppercase tracking-widest mb-1">Course Progress</h3>
+                                 <p className="text-3xl font-mono font-bold text-[#D1F2EB]">{progressPercent}%</p>
                              </div>
-                             <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+                             <div className="p-2 bg-[#50C878]/10 rounded-lg text-[#50C878]">
                                  <Activity size={24} />
                              </div>
                          </div>
                          
                          {/* Progress Bar */}
-                         <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden mb-6 border border-white/5">
+                         <div className="w-full bg-[#013220]/50 rounded-full h-2 overflow-hidden mb-6 border border-[#50C878]/20">
                              <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPercent}%` }}
                                 transition={{ duration: 1, ease: "easeOut" }}
-                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" 
+                                className="h-full bg-gradient-to-r from-[#50C878] to-[#0B6E4F]" 
                              />
                          </div>
 
                          {/* Certificate Status */}
-                         <div className="p-4 bg-black/20 rounded-xl border border-white/5">
+                         <div className="p-4 bg-[#013220]/20 rounded-xl border border-[#50C878]/20">
                              {isCertificateReady() ? (
                                 <motion.button 
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={downloadCertificate} 
-                                    className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-[#D1F2EB] font-bold rounded-lg shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
                                 >
                                     <Award size={18} />
                                     Claim Certificate
@@ -355,9 +355,9 @@ const CourseLearning = () => {
                     </GlassCard>
 
                     {/* PLAYLIST (Fills Remaining Height & Scrolls Internally) */}
-                    <div className="flex-1 bg-[#0b0f19] border border-white/10 rounded-2xl overflow-hidden flex flex-col min-h-0">
-                        <div className="p-5 border-b border-white/5 bg-gray-900/50 backdrop-blur-md flex-shrink-0 z-10">
-                            <h3 className="font-bold text-white text-base truncate">{course.title}</h3>
+                    <div className="flex-1 bg-[#0b0f19] border border-[#50C878]/30 rounded-2xl overflow-hidden flex flex-col min-h-0">
+                        <div className="p-5 border-b border-[#50C878]/20 bg-[#013220]/50 backdrop-blur-md flex-shrink-0 z-10">
+                            <h3 className="font-bold text-[#D1F2EB] text-base truncate">{course.title}</h3>
                             <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">
                                 {course.classes.length} Modules • {course.instructorId?.name}
                             </p>
@@ -377,19 +377,19 @@ const CourseLearning = () => {
                                         className={`
                                             group cursor-pointer p-3 rounded-xl border transition-all duration-200 relative overflow-hidden flex-shrink-0
                                             ${isActive 
-                                                ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' 
+                                                ? 'bg-[#0B6E4F]/10 border-[#50C878]/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' 
                                                 : 'bg-transparent border-transparent hover:bg-white/5'
                                             }
                                         `}
                                     >
                                         {/* Active Indicator Line */}
-                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500" />}
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#50C878]" />}
 
                                         <div className="flex gap-4">
                                             {/* Number/Icon */}
                                             <div className={`
                                                 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono transition-colors flex-shrink-0
-                                                ${isActive ? 'bg-indigo-500 text-white' : 'bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-white'}
+                                                ${isActive ? 'bg-[#50C878] text-[#D1F2EB]' : 'bg-[#0B6E4F] text-gray-500 group-hover:bg-gray-700 group-hover:text-[#D1F2EB]'}
                                             `}>
                                                 {isVisited ? <CheckCircle size={14} /> : idx + 1}
                                             </div>
@@ -397,16 +397,16 @@ const CourseLearning = () => {
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <p className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                                                    <p className={`text-sm font-medium truncate ${isActive ? 'text-[#D1F2EB]' : 'text-[#D1F2EB]/70 group-hover:text-gray-200'}`}>
                                                         Class {idx + 1}
                                                     </p>
-                                                    {isActive && <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse flex-shrink-0" />}
+                                                    {isActive && <div className="w-2 h-2 rounded-full bg-[#50C878] animate-pulse flex-shrink-0" />}
                                                 </div>
                                                 
                                                 {/* Meta Badges */}
                                                 <div className="flex flex-wrap gap-2 mt-2">
                                                     {cls.video && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 uppercase font-bold tracking-wider">
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B6E4F] text-gray-500 uppercase font-bold tracking-wider">
                                                             Video
                                                         </span>
                                                     )}
@@ -415,7 +415,7 @@ const CourseLearning = () => {
                                                             text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider border
                                                             ${result 
                                                                 ? (result.passed ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20") 
-                                                                : "bg-gray-800 text-gray-500 border-transparent"
+                                                                : "bg-[#0B6E4F] text-gray-500 border-transparent"
                                                             }
                                                         `}>
                                                             {result ? (result.passed ? "Passed" : "Failed") : "Quiz"}

@@ -16,8 +16,8 @@ const GlassCard = ({ children, className = "" }) => (
     animate={{ opacity: 1, y: 0 }}
     className={`
       relative overflow-hidden
-      bg-gray-900/40 backdrop-blur-xl 
-      border border-white/5 shadow-xl
+      bg-[#013220]/40 backdrop-blur-xl 
+      border border-[#50C878]/20 shadow-xl
       rounded-2xl p-6 
       ${className}
     `}
@@ -32,16 +32,16 @@ const TabButton = ({ active, onClick, label, icon: Icon }) => (
     onClick={onClick} 
     className={`
       relative flex items-center gap-3 px-8 py-4 rounded-xl transition-all duration-300 font-bold text-base z-10
-      ${active ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+      ${active ? 'text-[#D1F2EB]' : 'text-[#D1F2EB]/70 hover:text-[#D1F2EB] hover:bg-white/5'}
     `}
   >
     {active && (
       <motion.div 
         layoutId="activeTab"
-        className="absolute inset-0 bg-indigo-600/20 border border-indigo-500/30 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+        className="absolute inset-0 bg-[#0B6E4F]/20 border border-[#50C878]/30 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]"
       />
     )}
-    <Icon size={20} className={active ? "text-indigo-400" : ""} />
+    <Icon size={20} className={active ? "text-[#50C878]" : ""} />
     <span className="relative z-10">{label}</span>
   </button>
 );
@@ -175,31 +175,31 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-gray-200 pb-20 pt-28 overflow-x-hidden">
+    <div className="min-h-screen bg-[#013220] text-gray-200 pb-20 pt-28 overflow-x-hidden">
       
       {/* --- DASHBOARD HEADER --- */}
       <div className="max-w-7xl mx-auto px-6 mb-8">
-        <div className="bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+        <div className="bg-[#013220]/60 backdrop-blur-md border border-[#50C878]/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
           
           <div className="flex items-center gap-4">
-             <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-               <Shield className="text-indigo-400" size={32} />
+             <div className="p-3 bg-[#50C878]/10 rounded-xl border border-[#50C878]/20 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+               <Shield className="text-[#50C878]" size={32} />
              </div>
              <div>
-               <h1 className="text-3xl font-bold text-white tracking-tight">Admin<span className="text-indigo-400">Panel</span></h1>
-               <p className="text-sm text-gray-400 font-mono uppercase tracking-wider">System Command v2.4</p>
+               <h1 className="text-3xl font-bold text-[#D1F2EB] tracking-tight">Admin<span className="text-[#50C878]">Panel</span></h1>
+               <p className="text-sm text-[#D1F2EB]/70 font-mono uppercase tracking-wider">System Command v2.4</p>
              </div>
           </div>
 
           <div className="flex items-center gap-6">
              {/* Balance Card */}
-             <div className="flex items-center gap-4 px-6 py-3 rounded-xl bg-black/40 border border-gray-700/50 shadow-inner">
+             <div className="flex items-center gap-4 px-6 py-3 rounded-xl bg-[#013220]/40 border border-gray-700/50 shadow-inner">
                 <div className="p-2 rounded-full bg-green-500/10 text-green-400">
                    <Wallet size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Treasury Balance</p>
-                  <p className="text-2xl font-mono font-bold text-white">৳{balance.toLocaleString()}</p>
+                  <p className="text-xs text-[#D1F2EB]/70 uppercase tracking-widest font-bold">Treasury Balance</p>
+                  <p className="text-2xl font-mono font-bold text-[#D1F2EB]">৳{balance.toLocaleString()}</p>
                 </div>
              </div>
              {/* Logout Button Removed Here */}
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
         
         {/* --- TABS --- */}
         <div className="flex justify-center mb-10">
-          <div className="bg-gray-900/50 p-2 rounded-2xl border border-white/5 flex flex-wrap gap-2 justify-center shadow-lg">
+          <div className="bg-[#013220]/50 p-2 rounded-2xl border border-[#50C878]/20 flex flex-wrap gap-2 justify-center shadow-lg">
             <TabButton 
               active={activeTab === 'instructors'} 
               onClick={() => setActiveTab('instructors')} 
@@ -247,30 +247,30 @@ const AdminDashboard = () => {
             >
               <div className="lg:col-span-2 space-y-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-white">Active Personnel</h2>
-                    <span className="text-sm font-bold bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full">{instructorsList.length} Registered</span>
+                    <h2 className="text-2xl font-bold text-[#D1F2EB]">Active Personnel</h2>
+                    <span className="text-sm font-bold bg-[#50C878]/20 text-[#D1F2EB] px-3 py-1 rounded-full">{instructorsList.length} Registered</span>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-4">
                     {instructorsList.length === 0 ? <p className="text-gray-500 text-lg text-center py-10">No instructors found.</p> : 
                       instructorsList.map(inst => (
-                        <GlassCard key={inst._id} className="group hover:border-indigo-500/30 transition-all">
+                        <GlassCard key={inst._id} className="group hover:border-[#50C878]/30 transition-all">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-full bg-indigo-500/10 text-indigo-400">
+                                    <div className="p-3 rounded-full bg-[#50C878]/10 text-[#50C878]">
                                         <Users size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white">{inst.name}</h3>
-                                        <p className="text-sm text-gray-400 font-mono">{inst.email}</p>
+                                        <h3 className="text-xl font-bold text-[#D1F2EB]">{inst.name}</h3>
+                                        <p className="text-sm text-[#D1F2EB]/70 font-mono">{inst.email}</p>
                                     </div>
                                 </div>
-                                <button onClick={() => handleDeleteInstructor(inst._id)} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition">
+                                <button onClick={() => handleDeleteInstructor(inst._id)} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500 hover:text-[#D1F2EB] transition">
                                     <Trash2 size={20} />
                                 </button>
                             </div>
                             
-                            <div className="border-t border-white/5 pt-4">
+                            <div className="border-t border-[#50C878]/20 pt-4">
                                 <p className="text-xs text-gray-500 uppercase font-bold mb-3">Deployed Courses</p>
                                 <div className="flex flex-wrap gap-2">
                                     {inst.courses.length === 0 && <span className="text-sm text-gray-600 italic">Idle (No active courses)</span>}
@@ -292,15 +292,15 @@ const AdminDashboard = () => {
                  <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="sticky top-32 p-8 rounded-3xl bg-[#0b0e14] border border-white/10 shadow-[0_0_40px_-10px_rgba(99,102,241,0.3)] relative overflow-hidden"
+                    className="sticky top-32 p-8 rounded-3xl bg-[#0b0e14] border border-[#50C878]/30 shadow-[0_0_40px_-10px_rgba(99,102,241,0.3)] relative overflow-hidden"
                  >
                     {/* Ambient Glows for the "Ugly" Fix */}
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-600/30 rounded-full blur-[60px]" />
-                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-600/30 rounded-full blur-[60px]" />
+                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#0B6E4F]/30 rounded-full blur-[60px]" />
+                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#0B6E4F]/30 rounded-full blur-[60px]" />
                     
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-8">
-                            <Plus className="text-indigo-400" size={24} />
+                            <Plus className="text-[#50C878]" size={24} />
                             <h2 className="font-bold uppercase text-lg text-indigo-100 tracking-wider">Recruit Instructor</h2>
                         </div>
                         
@@ -308,7 +308,7 @@ const AdminDashboard = () => {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Full Name</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
                                     placeholder="John Doe" 
                                     value={instData.name} 
                                     onChange={e => setInstData({...instData, name: e.target.value})} 
@@ -318,7 +318,7 @@ const AdminDashboard = () => {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Email Address</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
                                     placeholder="admin@lms.sim" 
                                     value={instData.email} 
                                     onChange={e => setInstData({...instData, email: e.target.value})} 
@@ -328,7 +328,7 @@ const AdminDashboard = () => {
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Assign Password</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
                                     type="password" 
                                     placeholder="••••••••" 
                                     value={instData.password} 
@@ -337,7 +337,7 @@ const AdminDashboard = () => {
                                 />
                             </div>
                             
-                            <button className="w-full py-4 mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-base rounded-xl shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                            <button className="w-full py-4 mt-4 bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] hover:from-[#50C878] hover:to-[#0B6E4F] text-[#D1F2EB] font-bold text-base rounded-xl shadow-lg shadow-[#50C878]/30 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
                                 Initialize Account
                             </button>
                         </form>
@@ -357,56 +357,56 @@ const AdminDashboard = () => {
                className="max-w-5xl mx-auto"
              >
                 {pendingCourses.length === 0 ? (
-                    <div className="text-center py-24 bg-gray-900/30 rounded-3xl border border-white/5">
+                    <div className="text-center py-24 bg-[#013220]/30 rounded-3xl border border-[#50C878]/20">
                         <CheckCircle size={64} className="mx-auto text-gray-700 mb-6" />
                         <p className="text-xl text-gray-500 font-bold">System Clean. No pending approvals.</p>
                     </div>
                 ) : (
                     pendingCourses.map(course => (
-                        <GlassCard key={course._id} className="mb-8 hover:shadow-2xl hover:shadow-purple-500/10 transition-shadow">
+                        <GlassCard key={course._id} className="mb-8 hover:shadow-2xl hover:shadow-[#0B6E4F]/10 transition-shadow">
                             <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
                                 <div>
                                     <div className="flex items-center gap-4 mb-3">
-                                        <h3 className="text-3xl font-bold text-white">{course.title}</h3>
+                                        <h3 className="text-3xl font-bold text-[#D1F2EB]">{course.title}</h3>
                                         <span className="px-3 py-1 rounded-md text-xs font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 uppercase tracking-wide">Pending Review</span>
                                     </div>
-                                    <div className="space-y-2 text-base text-gray-400">
-                                        <p>Instructor: <span className="text-white font-bold">{course.instructorId?.name}</span></p>
+                                    <div className="space-y-2 text-base text-[#D1F2EB]/70">
+                                        <p>Instructor: <span className="text-[#D1F2EB] font-bold">{course.instructorId?.name}</span></p>
                                         <p>Price: <span className="text-green-400 font-mono font-bold text-lg">৳{course.price}</span></p>
-                                        <p>Content: <span className="text-white">{course.classes.length} Classes</span></p>
+                                        <p>Content: <span className="text-[#D1F2EB]">{course.classes.length} Classes</span></p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <button onClick={() => handleDeclineContent(course._id)} className="px-6 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-sm font-bold">
                                         Decline
                                     </button>
-                                    <button onClick={() => initiateApproval(course._id)} className="px-6 py-3 rounded-xl bg-green-600 text-white hover:bg-green-500 shadow-lg shadow-green-500/20 transition text-sm font-bold flex items-center justify-center gap-2">
+                                    <button onClick={() => initiateApproval(course._id)} className="px-6 py-3 rounded-xl bg-green-600 text-[#D1F2EB] hover:bg-green-500 shadow-lg shadow-green-500/20 transition text-sm font-bold flex items-center justify-center gap-2">
                                         <CheckCircle size={18} />
                                         Approve & Pay
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="mt-8 border-t border-white/5 pt-6">
+                            <div className="mt-8 border-t border-[#50C878]/20 pt-6">
                                 <p className="text-sm text-gray-500 uppercase font-bold tracking-widest mb-4">Curriculum Audit</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {course.classes.map((cls, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => { setViewingClass({ ...cls, _idx: idx }); setViewingCourseTitle(course.title); }} 
-                                            className="group cursor-pointer flex justify-between items-center p-4 rounded-xl bg-black/20 border border-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all"
+                                            className="group cursor-pointer flex justify-between items-center p-4 rounded-xl bg-[#013220]/20 border border-[#50C878]/20 hover:bg-[#50C878]/10 hover:border-[#50C878]/30 transition-all"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800 text-gray-500 text-sm font-bold font-mono group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0B6E4F] text-gray-500 text-sm font-bold font-mono group-hover:bg-[#50C878] group-hover:text-[#D1F2EB] transition-colors">
                                                     {idx+1}
                                                 </div>
-                                                <span className="text-base font-medium text-gray-300 group-hover:text-white transition-colors">
+                                                <span className="text-base font-medium text-[#D1F2EB]/90 group-hover:text-[#D1F2EB] transition-colors">
                                                     Class Module
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 {cls.video && <Play size={16} className="text-green-500" />}
-                                                <span className="text-xs font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase">Preview</span>
+                                                <span className="text-xs font-bold text-[#50C878] opacity-0 group-hover:opacity-100 transition-opacity uppercase">Preview</span>
                                             </div>
                                         </div>
                                     ))}
@@ -429,12 +429,12 @@ const AdminDashboard = () => {
             >
                <GlassCard className="min-h-[600px]">
                   <div className="flex justify-between items-center mb-10">
-                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                         <Activity size={28} className="text-indigo-400" />
+                     <h2 className="text-3xl font-bold text-[#D1F2EB] flex items-center gap-3">
+                         <Activity size={28} className="text-[#50C878]" />
                          Global Ledger
                      </h2>
                      {transactions.length > 0 && (
-                         <button onClick={handleClearHistory} className="text-sm font-bold text-red-400 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg hover:bg-red-500 transition">
+                         <button onClick={handleClearHistory} className="text-sm font-bold text-red-400 hover:text-[#D1F2EB] border border-red-500/30 px-4 py-2 rounded-lg hover:bg-red-500 transition">
                              Purge History
                          </button>
                      )}
@@ -443,7 +443,7 @@ const AdminDashboard = () => {
                   {transactions.length === 0 ? <p className="text-gray-500 text-xl text-center mt-32">No transaction records found.</p> : (
                       <div className="space-y-3">
                           {/* Header Row */}
-                          <div className="grid grid-cols-12 text-xs font-bold text-gray-500 uppercase tracking-widest px-6 pb-4 border-b border-white/5">
+                          <div className="grid grid-cols-12 text-xs font-bold text-gray-500 uppercase tracking-widest px-6 pb-4 border-b border-[#50C878]/20">
                               <div className="col-span-5">Details</div>
                               <div className="col-span-3">Status</div>
                               <div className="col-span-2 text-right">Amount</div>
@@ -452,12 +452,12 @@ const AdminDashboard = () => {
                           
                           {/* Data Rows */}
                           {transactions.map(tx => (
-                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-xl bg-black/20 hover:bg-white/5 transition-colors">
+                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-xl bg-[#013220]/20 hover:bg-white/5 transition-colors">
                                   <div className="col-span-5">
-                                      <p className="text-base font-bold text-white truncate pr-4">{tx.courseId?.title || "Unknown Course"}</p>
+                                      <p className="text-base font-bold text-[#D1F2EB] truncate pr-4">{tx.courseId?.title || "Unknown Course"}</p>
                                       <div className="flex items-center gap-2 mt-2">
                                           <span className="text-xs text-gray-500 uppercase font-bold">Learner:</span>
-                                          <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">{tx.learnerId?.name}</span>
+                                          <span className="text-xs font-bold text-[#D1F2EB] bg-[#50C878]/10 px-2 py-0.5 rounded">{tx.learnerId?.name}</span>
                                       </div>
                                       <p className="text-xs text-gray-600 mt-1">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
                                   </div>
@@ -465,19 +465,19 @@ const AdminDashboard = () => {
                                       <span className={`text-xs px-3 py-1.5 rounded-full uppercase font-bold tracking-wide ${
                                            tx.status === 'completed' ? 'text-green-400 bg-green-500/10 border border-green-500/20' :
                                            tx.status.includes('pending') ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20' : 
-                                           tx.status.includes('declined') ? 'text-red-400 bg-red-500/10 border border-red-500/20' : 'text-gray-400 bg-gray-500/10'
+                                           tx.status.includes('declined') ? 'text-red-400 bg-red-500/10 border border-red-500/20' : 'text-[#D1F2EB]/70 bg-gray-500/10'
                                       }`}>
                                           {tx.status.replace('_', ' ')}
                                       </span>
                                   </div>
                                   <div className="col-span-2 text-right">
-                                      <p className="font-mono font-bold text-lg text-white">৳{tx.amount}</p>
+                                      <p className="font-mono font-bold text-lg text-[#D1F2EB]">৳{tx.amount}</p>
                                   </div>
                                   <div className="col-span-2 text-right">
                                        {tx.status === 'pending_admin' ? (
                                            <div className="flex justify-end gap-2">
-                                               <button onClick={() => handleTxAction(tx._id, 'approve')} className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500 hover:text-white transition"><CheckCircle size={18}/></button>
-                                               <button onClick={() => handleTxAction(tx._id, 'decline')} className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition"><X size={18}/></button>
+                                               <button onClick={() => handleTxAction(tx._id, 'approve')} className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500 hover:text-[#D1F2EB] transition"><CheckCircle size={18}/></button>
+                                               <button onClick={() => handleTxAction(tx._id, 'decline')} className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-[#D1F2EB] transition"><X size={18}/></button>
                                            </div>
                                        ) : (
                                           <span className="text-gray-700 text-2xl font-thin block mr-4">-</span>
@@ -502,39 +502,39 @@ const AdminDashboard = () => {
              <motion.div 
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                onClick={() => setViewingClass(null)}
-               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+               className="fixed inset-0 bg-[#013220]/60 backdrop-blur-sm z-50"
              />
              {/* Drawer */}
              <motion.div 
                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-               className="fixed top-0 right-0 h-full w-full md:w-[500px] bg-[#0b0f19] border-l border-white/10 shadow-2xl z-50 flex flex-col"
+               className="fixed top-0 right-0 h-full w-full md:w-[500px] bg-[#0b0f19] border-l border-[#50C878]/30 shadow-2xl z-50 flex flex-col"
              >
-                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gray-900/50">
+                <div className="p-8 border-b border-[#50C878]/20 flex justify-between items-center bg-[#013220]/50">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Content Audit</h2>
-                        <p className="text-sm font-medium text-indigo-400 truncate max-w-[300px] mt-1">{viewingCourseTitle}</p>
+                        <h2 className="text-2xl font-bold text-[#D1F2EB]">Content Audit</h2>
+                        <p className="text-sm font-medium text-[#50C878] truncate max-w-[300px] mt-1">{viewingCourseTitle}</p>
                     </div>
-                    <button onClick={() => setViewingClass(null)} className="p-2 hover:bg-white/10 rounded-full transition"><X size={24} className="text-gray-400"/></button>
+                    <button onClick={() => setViewingClass(null)} className="p-2 hover:bg-white/10 rounded-full transition"><X size={24} className="text-[#D1F2EB]/70"/></button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     {/* Video */}
-                    <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
+                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
-                            <Play size={16} className="text-indigo-500" /> Video Material
+                            <Play size={16} className="text-[#50C878]" /> Video Material
                         </div>
                         {viewingClass.video ? (
-                            <video src={viewingClass.video} controls className="w-full rounded-xl shadow-lg border border-white/5" />
+                            <video src={viewingClass.video} controls className="w-full rounded-xl shadow-lg border border-[#50C878]/20" />
                         ) : (
-                            <div className="h-40 flex items-center justify-center bg-gray-800/50 rounded-xl text-sm font-medium text-gray-500 border border-dashed border-gray-700">No Video Uploaded</div>
+                            <div className="h-40 flex items-center justify-center bg-[#0B6E4F]/50 rounded-xl text-sm font-medium text-gray-500 border border-dashed border-gray-700">No Video Uploaded</div>
                         )}
                     </div>
 
                     {/* Audio */}
-                    <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
+                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
                          <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
-                            <Music size={16} className="text-purple-500" /> Audio Material
+                            <Music size={16} className="text-[#0B6E4F]" /> Audio Material
                         </div>
                         {viewingClass.audio ? (
                             <audio src={viewingClass.audio} controls className="w-full h-10" />
@@ -544,11 +544,11 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Text */}
-                    <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
+                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
                             <FileText size={16} className="text-blue-500" /> Text Content
                         </div>
-                        <p className="text-base text-gray-300 leading-relaxed whitespace-pre-wrap">{viewingClass.text || "No text content provided."}</p>
+                        <p className="text-base text-[#D1F2EB]/90 leading-relaxed whitespace-pre-wrap">{viewingClass.text || "No text content provided."}</p>
                     </div>
 
                     {/* MCQs */}
@@ -559,8 +559,8 @@ const AdminDashboard = () => {
                         <div className="space-y-4">
                             {viewingClass.mcq.length === 0 ? <p className="text-sm text-gray-600 italic">No questions configured.</p> : 
                              viewingClass.mcq.map((q, i) => (
-                                <div key={i} className="p-4 bg-gray-800/50 rounded-xl border border-white/5">
-                                    <p className="text-sm font-bold text-white mb-3"><span className="text-gray-500 mr-2">Q{i+1}</span>{q.question}</p>
+                                <div key={i} className="p-4 bg-[#0B6E4F]/50 rounded-xl border border-[#50C878]/20">
+                                    <p className="text-sm font-bold text-[#D1F2EB] mb-3"><span className="text-gray-500 mr-2">Q{i+1}</span>{q.question}</p>
                                     <div className="space-y-2 pl-3 border-l-2 border-gray-700">
                                         {q.options.map((opt, oid) => (
                                             <p key={oid} className={`text-sm ${opt === q.answer ? "text-green-400 font-bold" : "text-gray-500"}`}>
@@ -584,7 +584,7 @@ const AdminDashboard = () => {
            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                className="absolute inset-0 bg-[#013220]/80 backdrop-blur-md"
                 onClick={() => setShowSecretModal(false)}
               />
               <motion.div 
@@ -597,23 +597,23 @@ const AdminDashboard = () => {
                       </div>
                   </div>
                   
-                  <h3 className="text-3xl font-bold text-center text-white mb-3">Authorization Required</h3>
-                  <p className="text-center text-gray-400 text-base mb-10 leading-relaxed">
-                      Initiating secure transfer of <span className="text-white font-bold">৳1000</span>. <br/>Enter protocol secret to confirm action.
+                  <h3 className="text-3xl font-bold text-center text-[#D1F2EB] mb-3">Authorization Required</h3>
+                  <p className="text-center text-[#D1F2EB]/70 text-base mb-10 leading-relaxed">
+                      Initiating secure transfer of <span className="text-[#D1F2EB] font-bold">৳1000</span>. <br/>Enter protocol secret to confirm action.
                   </p>
 
                   <form onSubmit={confirmApproval}>
                       <input 
                         type="password" 
                         placeholder="••••••••" 
-                        className="w-full bg-black/50 border border-gray-700 text-center text-3xl tracking-[0.5em] text-white rounded-2xl py-5 mb-8 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all placeholder:tracking-normal placeholder:text-base placeholder:text-gray-600" 
+                        className="w-full bg-[#013220]/50 border border-gray-700 text-center text-3xl tracking-[0.5em] text-[#D1F2EB] rounded-2xl py-5 mb-8 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all placeholder:tracking-normal placeholder:text-base placeholder:text-gray-600" 
                         autoFocus 
                         value={secretInput} 
                         onChange={e => setSecretInput(e.target.value)} 
                       />
                       <div className="flex gap-4">
-                          <button type="button" onClick={() => setShowSecretModal(false)} className="flex-1 py-4 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition font-bold text-base">Cancel</button>
-                          <button type="submit" className="flex-1 py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-base shadow-lg shadow-red-600/20 transition">Confirm Transfer</button>
+                          <button type="button" onClick={() => setShowSecretModal(false)} className="flex-1 py-4 rounded-xl border border-gray-700 text-[#D1F2EB]/70 hover:text-[#D1F2EB] hover:border-gray-500 transition font-bold text-base">Cancel</button>
+                          <button type="submit" className="flex-1 py-4 bg-red-600 hover:bg-red-500 text-[#D1F2EB] rounded-xl font-bold text-base shadow-lg shadow-red-600/20 transition">Confirm Transfer</button>
                       </div>
                   </form>
               </motion.div>

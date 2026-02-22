@@ -173,7 +173,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
             {/* --- SIDEBAR: CLASS LIST --- */}
             <div className="xl:col-span-3 space-y-4">
                 <GlassCard className="h-fit sticky top-32 border-gray-800">
-                    <div className="flex items-center gap-2 mb-6 text-indigo-400">
+                    <div className="flex items-center gap-2 mb-6 text-[#50C878]">
                         <LayoutList size={20} />
                         <h3 className="font-bold uppercase tracking-wider text-xs">Course Structure</h3>
                     </div>
@@ -192,14 +192,14 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                                     className={`
                                         p-4 rounded-xl cursor-pointer border transition-all duration-200 relative overflow-hidden group
                                         ${idx === activeClassIndex 
-                                            ? 'bg-purple-600/10 border-purple-500 text-white shadow-[0_0_20px_rgba(147,51,234,0.15)]' 
-                                            : 'bg-[#18181b] border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'
+                                            ? 'bg-[#0B6E4F]/10 border-[#0B6E4F] text-[#D1F2EB] shadow-[0_0_20px_rgba(147,51,234,0.15)]' 
+                                            : 'bg-[#18181b] border-gray-800 text-[#D1F2EB]/70 hover:border-gray-600 hover:text-gray-200'
                                         }
                                     `}
                                 >
                                     <div className="flex justify-between items-center relative z-10">
                                         <div className="flex items-center gap-3">
-                                            <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-lg ${idx === activeClassIndex ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-500'}`}>
+                                            <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-lg ${idx === activeClassIndex ? 'bg-[#0B6E4F] text-[#D1F2EB]' : 'bg-[#0B6E4F] text-gray-500'}`}>
                                                 {idx + 1}
                                             </span>
                                             <span className="text-sm font-medium">Class {idx + 1}</span>
@@ -208,8 +208,8 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                                         {/* Status Icon Logic */}
                                         {isThisClassUploading ? (
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] text-indigo-400 font-mono">{uploadStatus[idx].progress}%</span>
-                                                <Loader2 size={16} className="text-indigo-400 animate-spin" />
+                                                <span className="text-[10px] text-[#50C878] font-mono">{uploadStatus[idx].progress}%</span>
+                                                <Loader2 size={16} className="text-[#50C878] animate-spin" />
                                             </div>
                                         ) : cls.video ? (
                                             <CheckCircle size={16} className="text-green-500" />
@@ -227,7 +227,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={attemptFinalSubmit} 
-                            className="w-full py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2"
+                            className="w-full py-3 rounded-xl bg-green-600 hover:bg-green-500 text-[#D1F2EB] font-bold shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2"
                         >
                             <Check size={18} />
                             Publish Course
@@ -236,7 +236,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                         <motion.button 
                             whileHover={{ x: -2 }}
                             onClick={onBack} 
-                            className="w-full py-3 text-sm text-gray-500 hover:text-white border border-gray-700 hover:border-gray-500 rounded-xl transition-all flex items-center justify-center gap-2"
+                            className="w-full py-3 text-sm text-gray-500 hover:text-[#D1F2EB] border border-gray-700 hover:border-gray-500 rounded-xl transition-all flex items-center justify-center gap-2"
                         >
                             <ArrowLeft size={16} />
                             Go Back
@@ -251,11 +251,11 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                         <div>
-                            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                                <span className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Video size={24}/></span>
+                            <h2 className="text-3xl font-bold text-[#D1F2EB] flex items-center gap-3">
+                                <span className="p-2 bg-[#0B6E4F]/20 rounded-lg text-[#50C878]"><Video size={24}/></span>
                                 Editing Class {activeClassIndex + 1}
                             </h2>
-                            <p className="text-gray-400 text-sm mt-2 ml-1">Manage video lectures, audio notes, and assessments.</p>
+                            <p className="text-[#D1F2EB]/70 text-sm mt-2 ml-1">Manage video lectures, audio notes, and assessments.</p>
                         </div>
                         
                         {/* --- PROGRESS BAR (Tracks Current Class Only) --- */}
@@ -265,15 +265,15 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: 20 }}
-                                    className="w-full md:w-72 bg-gray-900 rounded-xl border border-gray-700 p-4 shadow-xl"
+                                    className="w-full md:w-72 bg-[#013220] rounded-xl border border-gray-700 p-4 shadow-xl"
                                 >
-                                    <div className="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
-                                        <span className="animate-pulse text-indigo-400">Uploading...</span>
-                                        <span className="text-white">{currentUpload.progress}%</span>
+                                    <div className="flex justify-between text-xs font-bold text-[#D1F2EB]/70 mb-2 uppercase tracking-wider">
+                                        <span className="animate-pulse text-[#50C878]">Uploading...</span>
+                                        <span className="text-[#D1F2EB]">{currentUpload.progress}%</span>
                                     </div>
-                                    <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
+                                    <div className="w-full h-3 bg-[#0B6E4F] rounded-full overflow-hidden border border-gray-700/50">
                                         <motion.div 
-                                            className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 relative"
+                                            className="h-full bg-gradient-to-r from-[#0B6E4F] to-[#50C878] relative"
                                             initial={{ width: 0 }}
                                             animate={{ width: `${currentUpload.progress}%` }}
                                             transition={{ ease: "linear" }}
@@ -289,28 +289,28 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                     {/* Media Uploads Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Video Upload Card */}
-                        <div className="bg-[#18181b] p-6 rounded-2xl border border-gray-800 relative group hover:border-purple-500/30 transition-all">
+                        <div className="bg-[#18181b] p-6 rounded-2xl border border-gray-800 relative group hover:border-[#0B6E4F]/30 transition-all">
                             <label className="flex flex-col h-full cursor-pointer">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-gray-300 flex items-center gap-2">
-                                        <Video size={16} className="text-purple-400"/> Primary Lecture
+                                    <h4 className="font-bold text-[#D1F2EB]/90 flex items-center gap-2">
+                                        <Video size={16} className="text-[#50C878]"/> Primary Lecture
                                     </h4>
                                     {currentClass.video && <CheckCircle size={16} className="text-green-500" />}
                                 </div>
                                 
-                                <div className="relative w-full h-48 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center bg-black/20 group-hover:bg-purple-500/5 group-hover:border-purple-500/50 transition-all overflow-hidden">
+                                <div className="relative w-full h-48 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center bg-[#013220]/20 group-hover:bg-[#0B6E4F]/5 group-hover:border-[#0B6E4F]/50 transition-all overflow-hidden">
                                     {tempVideoFile ? (
                                         <div className="text-center p-4">
-                                            <div className="p-3 bg-purple-500/20 rounded-full inline-block mb-2 text-purple-400"><Video size={24} /></div>
-                                            <p className="text-sm text-white font-medium truncate w-48">{tempVideoFile.name}</p>
+                                            <div className="p-3 bg-[#0B6E4F]/20 rounded-full inline-block mb-2 text-[#50C878]"><Video size={24} /></div>
+                                            <p className="text-sm text-[#D1F2EB] font-medium truncate w-48">{tempVideoFile.name}</p>
                                             <p className="text-xs text-gray-500 mt-1">Ready to upload</p>
                                         </div>
                                     ) : currentClass.video ? (
                                         <video src={currentClass.video} className="w-full h-full object-cover opacity-60" />
                                     ) : (
                                         <>
-                                            <div className="p-4 bg-gray-800 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                                                <UploadCloud size={24} className="text-gray-400 group-hover:text-purple-400"/>
+                                            <div className="p-4 bg-[#0B6E4F] rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                                <UploadCloud size={24} className="text-[#D1F2EB]/70 group-hover:text-[#50C878]"/>
                                             </div>
                                             <span className="text-sm text-gray-500 font-medium group-hover:text-purple-300">
                                                 Click to Upload Video
@@ -328,33 +328,33 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                         </div>
 
                         {/* Audio Upload Card */}
-                        <div className="bg-[#18181b] p-6 rounded-2xl border border-gray-800 relative group hover:border-purple-500/30 transition-all">
+                        <div className="bg-[#18181b] p-6 rounded-2xl border border-gray-800 relative group hover:border-[#0B6E4F]/30 transition-all">
                              <label className="flex flex-col h-full cursor-pointer">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-gray-300 flex items-center gap-2">
-                                        <Mic size={16} className="text-purple-400"/> Audio Notes
+                                    <h4 className="font-bold text-[#D1F2EB]/90 flex items-center gap-2">
+                                        <Mic size={16} className="text-[#50C878]"/> Audio Notes
                                     </h4>
                                     {currentClass.audio && <CheckCircle size={16} className="text-green-500" />}
                                 </div>
                                 
-                                <div className="relative w-full h-48 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center bg-black/20 group-hover:bg-purple-500/5 group-hover:border-purple-500/50 transition-all">
+                                <div className="relative w-full h-48 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center bg-[#013220]/20 group-hover:bg-[#0B6E4F]/5 group-hover:border-[#0B6E4F]/50 transition-all">
                                     {tempAudioFile ? (
                                         <div className="text-center p-4">
                                             <div className="p-3 bg-green-500/20 rounded-full inline-block mb-2 text-green-400"><Mic size={24} /></div>
-                                            <p className="text-sm text-white font-medium truncate w-48">{tempAudioFile.name}</p>
+                                            <p className="text-sm text-[#D1F2EB] font-medium truncate w-48">{tempAudioFile.name}</p>
                                             <p className="text-xs text-gray-500 mt-1">Ready to upload</p>
                                         </div>
                                     ) : currentClass.audio ? (
                                         <div className="text-center">
-                                            <div className="p-4 bg-gray-800 rounded-full mb-3 inline-block">
-                                                <Mic size={24} className="text-purple-400"/>
+                                            <div className="p-4 bg-[#0B6E4F] rounded-full mb-3 inline-block">
+                                                <Mic size={24} className="text-[#50C878]"/>
                                             </div>
-                                            <p className="text-xs text-gray-400 font-mono">Audio file active</p>
+                                            <p className="text-xs text-[#D1F2EB]/70 font-mono">Audio file active</p>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="p-4 bg-gray-800 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                                                <UploadCloud size={24} className="text-gray-400 group-hover:text-purple-400"/>
+                                            <div className="p-4 bg-[#0B6E4F] rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                                <UploadCloud size={24} className="text-[#D1F2EB]/70 group-hover:text-[#50C878]"/>
                                             </div>
                                             <span className="text-sm text-gray-500 font-medium group-hover:text-purple-300">
                                                 Upload Audio (Optional)
@@ -374,12 +374,12 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
 
                     {/* Text Content */}
                     <div className="mb-8">
-                        <div className="flex items-center gap-2 text-gray-400 font-bold uppercase text-xs tracking-wider mb-3">
+                        <div className="flex items-center gap-2 text-[#D1F2EB]/70 font-bold uppercase text-xs tracking-wider mb-3">
                             <FileText size={16} />
                             Reading Materials
                         </div>
                         <textarea 
-                            className="w-full bg-[#18181b] border border-gray-800 rounded-xl p-5 text-gray-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all min-h-[150px] resize-y placeholder:text-gray-600"
+                            className="w-full bg-[#18181b] border border-gray-800 rounded-xl p-5 text-[#D1F2EB]/90 focus:outline-none focus:border-[#0B6E4F] focus:ring-1 focus:ring-[#0B6E4F] transition-all min-h-[150px] resize-y placeholder:text-gray-600"
                             value={currentClass.text || ''} 
                             onChange={e => handleTextChange(e.target.value)} 
                             placeholder="Add supplementary reading text or notes for students here..." 
@@ -394,10 +394,10 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                             onClick={handleSaveClass} 
                             disabled={currentUpload.uploading}
                             className={`
-                                px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center gap-2
+                                px-8 py-3 rounded-xl font-bold text-[#D1F2EB] shadow-lg transition-all flex items-center gap-2
                                 ${currentUpload.uploading 
-                                    ? 'bg-gray-700 cursor-not-allowed text-gray-400' 
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-500/30'
+                                    ? 'bg-gray-700 cursor-not-allowed text-[#D1F2EB]/70' 
+                                    : 'bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] hover:shadow-[#0B6E4F]/30'
                                 }
                             `}
                         >
@@ -409,7 +409,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                     {/* --- MCQs SECTION --- */}
                     <div>
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-[#D1F2EB] flex items-center gap-2">
                                 <AlertCircle size={20} className="text-orange-400"/>
                                 Quiz Assessment
                             </h3>
@@ -417,7 +417,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={addMCQ} 
-                                className="px-4 py-2 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition text-sm font-bold flex items-center gap-2"
+                                className="px-4 py-2 rounded-lg border border-[#0B6E4F]/30 bg-[#0B6E4F]/10 text-[#50C878] hover:bg-[#0B6E4F]/20 transition text-sm font-bold flex items-center gap-2"
                             >
                                 <Plus size={16} />
                                 Add Question
@@ -443,7 +443,7 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
                                         <div className="flex items-center gap-4 mb-4">
                                             <span className="text-gray-500 font-mono text-sm font-bold">0{i+1}.</span>
                                             <input 
-                                                className="flex-1 bg-transparent border-b border-gray-700 focus:border-purple-500 focus:outline-none text-white font-medium py-1 transition-colors placeholder:text-gray-600" 
+                                                className="flex-1 bg-transparent border-b border-gray-700 focus:border-[#0B6E4F] focus:outline-none text-[#D1F2EB] font-medium py-1 transition-colors placeholder:text-gray-600" 
                                                 placeholder="Enter question text..." 
                                                 value={q.question} 
                                                 onChange={e => updateMCQ(i, 'question', e.target.value)} 
@@ -468,8 +468,8 @@ const ContentEditor = ({ courseData, setCourseData, onBack, onFinalSubmit }) => 
 
                                                         <input 
                                                             className={`
-                                                                flex-1 bg-black/30 border rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none transition-all
-                                                                ${isSelected ? 'border-green-500/50 bg-green-900/10' : 'border-gray-700 focus:border-purple-500'}
+                                                                flex-1 bg-[#013220]/30 border rounded-lg px-3 py-2 text-sm text-[#D1F2EB]/90 focus:outline-none transition-all
+                                                                ${isSelected ? 'border-green-500/50 bg-green-900/10' : 'border-gray-700 focus:border-[#0B6E4F]'}
                                                             `}
                                                             placeholder={`Option ${optIdx+1}`} 
                                                             value={opt} 
