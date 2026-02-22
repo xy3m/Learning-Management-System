@@ -17,7 +17,7 @@ const GlassCard = ({ children, className = "" }) => (
     animate={{ opacity: 1, y: 0 }}
     className={`
       relative overflow-hidden
-      bg-[#013220]/40 backdrop-blur-xl 
+      bg-black/40 backdrop-blur-xl 
       border border-[#50C878]/20 shadow-xl
       rounded-2xl p-6 
       ${className}
@@ -144,7 +144,7 @@ const CourseLearning = () => {
         if (!quizSubmitted) {
             return isSelected 
                 ? "bg-[#0B6E4F]/20 border-[#50C878] text-[#D1F2EB] shadow-[0_0_15px_rgba(99,102,241,0.3)]" 
-                : "bg-[#013220]/20 border-[#50C878]/20 hover:bg-white/5 text-[#D1F2EB]/70";
+                : "bg-black/20 border-[#50C878]/20 hover:bg-white/5 text-[#D1F2EB]/70";
         }
 
         if (isSelected) {
@@ -157,14 +157,14 @@ const CourseLearning = () => {
              return "bg-green-500/10 border-green-500/30 text-green-400/70 border-dashed";
         }
 
-        return "bg-[#013220]/20 border-[#50C878]/20 opacity-50"; 
+        return "bg-black/20 border-[#50C878]/20 opacity-50"; 
     };
 
     if (!course) return (
-        <div className="min-h-screen bg-[#013220] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
             <div className="animate-pulse flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-4 border-[#50C878] border-t-transparent rounded-full animate-spin"/>
-                <span className="text-gray-500 font-mono text-sm">LOADING NEURAL LINK...</span>
+                <span className="text-yellow-400 font-mono text-sm">LOADING NEURAL LINK...</span>
             </div>
         </div>
     );
@@ -173,7 +173,7 @@ const CourseLearning = () => {
     const progressPercent = Math.round((progressData.completedClassIndices.length / course.classes.length) * 100);
 
     return (
-        <div className="min-h-screen bg-[#013220] text-gray-200 pt-24 pb-10 px-6">
+        <div className="min-h-screen bg-[#0a0a0a] text-gray-200 pt-24 pb-10 px-6">
             <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -185,7 +185,7 @@ const CourseLearning = () => {
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="relative aspect-video bg-[#013220] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-[#50C878]/30 group"
+                        className="relative aspect-video bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-[#50C878]/30 group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
                         <video
@@ -228,12 +228,12 @@ const CourseLearning = () => {
                          </div>
 
                          {/* TEXT CONTENT */}
-                         <div className="p-6 bg-[#013220]/20 rounded-xl border border-[#50C878]/20">
-                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                         <div className="p-6 bg-black/20 rounded-xl border border-[#50C878]/20">
+                             <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                  <BookOpen size={16} /> Transcript & Notes
                              </h3>
                              <div className="text-[#D1F2EB]/90 leading-relaxed whitespace-pre-wrap text-base font-light">
-                                 {currentClass.text || <span className="text-gray-600 italic flex items-center gap-2"><AlertCircle size={14}/> No supplementary notes provided for this lesson.</span>}
+                                 {currentClass.text || <span className="text-yellow-200 italic flex items-center gap-2"><AlertCircle size={14}/> No supplementary notes provided for this lesson.</span>}
                              </div>
                          </div>
                     </GlassCard>
@@ -322,7 +322,7 @@ const CourseLearning = () => {
                          </div>
                          
                          {/* Progress Bar */}
-                         <div className="w-full bg-[#013220]/50 rounded-full h-2 overflow-hidden mb-6 border border-[#50C878]/20">
+                         <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden mb-6 border border-[#50C878]/20">
                              <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPercent}%` }}
@@ -332,7 +332,7 @@ const CourseLearning = () => {
                          </div>
 
                          {/* Certificate Status */}
-                         <div className="p-4 bg-[#013220]/20 rounded-xl border border-[#50C878]/20">
+                         <div className="p-4 bg-black/20 rounded-xl border border-[#50C878]/20">
                              {isCertificateReady() ? (
                                 <motion.button 
                                     whileHover={{ scale: 1.05 }}
@@ -344,7 +344,7 @@ const CourseLearning = () => {
                                     Claim Certificate
                                 </motion.button>
                              ) : (
-                                <div className="flex items-center gap-3 text-gray-500">
+                                <div className="flex items-center gap-3 text-yellow-400">
                                     <Lock size={18} />
                                     <p className="text-xs leading-relaxed">
                                         Complete all lessons &amp; pass quizzes (&gt;50%) to unlock your certification.
@@ -356,9 +356,9 @@ const CourseLearning = () => {
 
                     {/* PLAYLIST (Fills Remaining Height & Scrolls Internally) */}
                     <div className="flex-1 bg-[#0b0f19] border border-[#50C878]/30 rounded-2xl overflow-hidden flex flex-col min-h-0">
-                        <div className="p-5 border-b border-[#50C878]/20 bg-[#013220]/50 backdrop-blur-md flex-shrink-0 z-10">
+                        <div className="p-5 border-b border-[#50C878]/20 bg-black/50 backdrop-blur-md flex-shrink-0 z-10">
                             <h3 className="font-bold text-[#D1F2EB] text-base truncate">{course.title}</h3>
-                            <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">
+                            <p className="text-xs text-yellow-400 mt-1 uppercase tracking-wide">
                                 {course.classes.length} Modules • {course.instructorId?.name}
                             </p>
                         </div>
@@ -389,7 +389,7 @@ const CourseLearning = () => {
                                             {/* Number/Icon */}
                                             <div className={`
                                                 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono transition-colors flex-shrink-0
-                                                ${isActive ? 'bg-[#50C878] text-[#D1F2EB]' : 'bg-[#0B6E4F] text-gray-500 group-hover:bg-gray-700 group-hover:text-[#D1F2EB]'}
+                                                ${isActive ? 'bg-[#50C878] text-[#D1F2EB]' : 'bg-[#0B6E4F] text-yellow-400 group-hover:bg-gray-700 group-hover:text-[#D1F2EB]'}
                                             `}>
                                                 {isVisited ? <CheckCircle size={14} /> : idx + 1}
                                             </div>
@@ -406,7 +406,7 @@ const CourseLearning = () => {
                                                 {/* Meta Badges */}
                                                 <div className="flex flex-wrap gap-2 mt-2">
                                                     {cls.video && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B6E4F] text-gray-500 uppercase font-bold tracking-wider">
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B6E4F] text-yellow-400 uppercase font-bold tracking-wider">
                                                             Video
                                                         </span>
                                                     )}
@@ -415,7 +415,7 @@ const CourseLearning = () => {
                                                             text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider border
                                                             ${result 
                                                                 ? (result.passed ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-400 border-red-500/20") 
-                                                                : "bg-[#0B6E4F] text-gray-500 border-transparent"
+                                                                : "bg-[#0B6E4F] text-yellow-400 border-transparent"
                                                             }
                                                         `}>
                                                             {result ? (result.passed ? "Passed" : "Failed") : "Quiz"}

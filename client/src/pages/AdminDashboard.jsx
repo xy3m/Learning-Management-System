@@ -16,7 +16,7 @@ const GlassCard = ({ children, className = "" }) => (
     animate={{ opacity: 1, y: 0 }}
     className={`
       relative overflow-hidden
-      bg-[#013220]/40 backdrop-blur-xl 
+      bg-black/40 backdrop-blur-xl 
       border border-[#50C878]/20 shadow-xl
       rounded-2xl p-6 
       ${className}
@@ -175,11 +175,11 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#013220] text-gray-200 pb-20 pt-28 overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-gray-200 pb-20 pt-28 overflow-x-hidden">
       
       {/* --- DASHBOARD HEADER --- */}
       <div className="max-w-7xl mx-auto px-6 mb-8">
-        <div className="bg-[#013220]/60 backdrop-blur-md border border-[#50C878]/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+        <div className="bg-black/60 backdrop-blur-md border border-[#50C878]/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
           
           <div className="flex items-center gap-4">
              <div className="p-3 bg-[#50C878]/10 rounded-xl border border-[#50C878]/20 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
@@ -193,7 +193,7 @@ const AdminDashboard = () => {
 
           <div className="flex items-center gap-6">
              {/* Balance Card */}
-             <div className="flex items-center gap-4 px-6 py-3 rounded-xl bg-[#013220]/40 border border-gray-700/50 shadow-inner">
+             <div className="flex items-center gap-4 px-6 py-3 rounded-xl bg-black/40 border border-yellow-500/30/50 shadow-inner">
                 <div className="p-2 rounded-full bg-green-500/10 text-green-400">
                    <Wallet size={24} />
                 </div>
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
         
         {/* --- TABS --- */}
         <div className="flex justify-center mb-10">
-          <div className="bg-[#013220]/50 p-2 rounded-2xl border border-[#50C878]/20 flex flex-wrap gap-2 justify-center shadow-lg">
+          <div className="bg-black/50 p-2 rounded-2xl border border-[#50C878]/20 flex flex-wrap gap-2 justify-center shadow-lg">
             <TabButton 
               active={activeTab === 'instructors'} 
               onClick={() => setActiveTab('instructors')} 
@@ -252,7 +252,7 @@ const AdminDashboard = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 gap-4">
-                    {instructorsList.length === 0 ? <p className="text-gray-500 text-lg text-center py-10">No instructors found.</p> : 
+                    {instructorsList.length === 0 ? <p className="text-yellow-400 text-lg text-center py-10">No instructors found.</p> : 
                       instructorsList.map(inst => (
                         <GlassCard key={inst._id} className="group hover:border-[#50C878]/30 transition-all">
                             <div className="flex justify-between items-start mb-4">
@@ -271,9 +271,9 @@ const AdminDashboard = () => {
                             </div>
                             
                             <div className="border-t border-[#50C878]/20 pt-4">
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-3">Deployed Courses</p>
+                                <p className="text-xs text-yellow-400 uppercase font-bold mb-3">Deployed Courses</p>
                                 <div className="flex flex-wrap gap-2">
-                                    {inst.courses.length === 0 && <span className="text-sm text-gray-600 italic">Idle (No active courses)</span>}
+                                    {inst.courses.length === 0 && <span className="text-sm text-yellow-200 italic">Idle (No active courses)</span>}
                                     {inst.courses.map(c => (
                                         <span key={c._id} className={`text-xs font-bold px-3 py-1.5 rounded border ${c.status === 'approved' ? 'border-green-500/20 text-green-400 bg-green-500/5' : 'border-yellow-500/20 text-yellow-400 bg-yellow-500/5'}`}>
                                             {c.title}
@@ -306,9 +306,9 @@ const AdminDashboard = () => {
                         
                         <form onSubmit={handleCreateInstructor} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Full Name</label>
+                                <label className="text-xs font-bold text-yellow-400 uppercase ml-1 tracking-wider">Full Name</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-yellow-100/40" 
                                     placeholder="John Doe" 
                                     value={instData.name} 
                                     onChange={e => setInstData({...instData, name: e.target.value})} 
@@ -316,9 +316,9 @@ const AdminDashboard = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Email Address</label>
+                                <label className="text-xs font-bold text-yellow-400 uppercase ml-1 tracking-wider">Email Address</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-yellow-100/40" 
                                     placeholder="admin@lms.sim" 
                                     value={instData.email} 
                                     onChange={e => setInstData({...instData, email: e.target.value})} 
@@ -326,9 +326,9 @@ const AdminDashboard = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Assign Password</label>
+                                <label className="text-xs font-bold text-yellow-400 uppercase ml-1 tracking-wider">Assign Password</label>
                                 <input 
-                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-gray-600" 
+                                    className="w-full bg-white/5 border border-[#50C878]/30 text-[#D1F2EB] rounded-xl px-4 py-3 focus:outline-none focus:border-[#50C878] focus:bg-white/10 transition-all placeholder:text-yellow-100/40" 
                                     type="password" 
                                     placeholder="••••••••" 
                                     value={instData.password} 
@@ -359,7 +359,7 @@ const AdminDashboard = () => {
                 {pendingCourses.length === 0 ? (
                     <div className="text-center py-24 bg-[#013220]/30 rounded-3xl border border-[#50C878]/20">
                         <CheckCircle size={64} className="mx-auto text-gray-700 mb-6" />
-                        <p className="text-xl text-gray-500 font-bold">System Clean. No pending approvals.</p>
+                        <p className="text-xl text-yellow-400 font-bold">System Clean. No pending approvals.</p>
                     </div>
                 ) : (
                     pendingCourses.map(course => (
@@ -388,16 +388,16 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="mt-8 border-t border-[#50C878]/20 pt-6">
-                                <p className="text-sm text-gray-500 uppercase font-bold tracking-widest mb-4">Curriculum Audit</p>
+                                <p className="text-sm text-yellow-400 uppercase font-bold tracking-widest mb-4">Curriculum Audit</p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {course.classes.map((cls, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => { setViewingClass({ ...cls, _idx: idx }); setViewingCourseTitle(course.title); }} 
-                                            className="group cursor-pointer flex justify-between items-center p-4 rounded-xl bg-[#013220]/20 border border-[#50C878]/20 hover:bg-[#50C878]/10 hover:border-[#50C878]/30 transition-all"
+                                            className="group cursor-pointer flex justify-between items-center p-4 rounded-xl bg-black/20 border border-[#50C878]/20 hover:bg-[#50C878]/10 hover:border-[#50C878]/30 transition-all"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0B6E4F] text-gray-500 text-sm font-bold font-mono group-hover:bg-[#50C878] group-hover:text-[#D1F2EB] transition-colors">
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0B6E4F] text-yellow-400 text-sm font-bold font-mono group-hover:bg-[#50C878] group-hover:text-[#D1F2EB] transition-colors">
                                                     {idx+1}
                                                 </div>
                                                 <span className="text-base font-medium text-[#D1F2EB]/90 group-hover:text-[#D1F2EB] transition-colors">
@@ -440,10 +440,10 @@ const AdminDashboard = () => {
                      )}
                   </div>
 
-                  {transactions.length === 0 ? <p className="text-gray-500 text-xl text-center mt-32">No transaction records found.</p> : (
+                  {transactions.length === 0 ? <p className="text-yellow-400 text-xl text-center mt-32">No transaction records found.</p> : (
                       <div className="space-y-3">
                           {/* Header Row */}
-                          <div className="grid grid-cols-12 text-xs font-bold text-gray-500 uppercase tracking-widest px-6 pb-4 border-b border-[#50C878]/20">
+                          <div className="grid grid-cols-12 text-xs font-bold text-yellow-400 uppercase tracking-widest px-6 pb-4 border-b border-[#50C878]/20">
                               <div className="col-span-5">Details</div>
                               <div className="col-span-3">Status</div>
                               <div className="col-span-2 text-right">Amount</div>
@@ -452,14 +452,14 @@ const AdminDashboard = () => {
                           
                           {/* Data Rows */}
                           {transactions.map(tx => (
-                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-xl bg-[#013220]/20 hover:bg-white/5 transition-colors">
+                              <div key={tx._id} className="grid grid-cols-12 items-center p-6 rounded-xl bg-black/20 hover:bg-white/5 transition-colors">
                                   <div className="col-span-5">
                                       <p className="text-base font-bold text-[#D1F2EB] truncate pr-4">{tx.courseId?.title || "Unknown Course"}</p>
                                       <div className="flex items-center gap-2 mt-2">
-                                          <span className="text-xs text-gray-500 uppercase font-bold">Learner:</span>
+                                          <span className="text-xs text-yellow-400 uppercase font-bold">Learner:</span>
                                           <span className="text-xs font-bold text-[#D1F2EB] bg-[#50C878]/10 px-2 py-0.5 rounded">{tx.learnerId?.name}</span>
                                       </div>
-                                      <p className="text-xs text-gray-600 mt-1">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
+                                      <p className="text-xs text-yellow-200 mt-1">{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}</p>
                                   </div>
                                   <div className="col-span-3">
                                       <span className={`text-xs px-3 py-1.5 rounded-full uppercase font-bold tracking-wide ${
@@ -502,7 +502,7 @@ const AdminDashboard = () => {
              <motion.div 
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                onClick={() => setViewingClass(null)}
-               className="fixed inset-0 bg-[#013220]/60 backdrop-blur-sm z-50"
+               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
              />
              {/* Drawer */}
              <motion.div 
@@ -510,7 +510,7 @@ const AdminDashboard = () => {
                transition={{ type: "spring", stiffness: 300, damping: 30 }}
                className="fixed top-0 right-0 h-full w-full md:w-[500px] bg-[#0b0f19] border-l border-[#50C878]/30 shadow-2xl z-50 flex flex-col"
              >
-                <div className="p-8 border-b border-[#50C878]/20 flex justify-between items-center bg-[#013220]/50">
+                <div className="p-8 border-b border-[#50C878]/20 flex justify-between items-center bg-black/50">
                     <div>
                         <h2 className="text-2xl font-bold text-[#D1F2EB]">Content Audit</h2>
                         <p className="text-sm font-medium text-[#50C878] truncate max-w-[300px] mt-1">{viewingCourseTitle}</p>
@@ -520,32 +520,32 @@ const AdminDashboard = () => {
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     {/* Video */}
-                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
-                        <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="bg-black/40 rounded-2xl p-6 border border-[#50C878]/20">
+                        <div className="flex items-center gap-2 mb-4 text-sm font-bold text-yellow-400 uppercase tracking-wider">
                             <Play size={16} className="text-[#50C878]" /> Video Material
                         </div>
                         {viewingClass.video ? (
                             <video src={viewingClass.video} controls className="w-full rounded-xl shadow-lg border border-[#50C878]/20" />
                         ) : (
-                            <div className="h-40 flex items-center justify-center bg-[#0B6E4F]/50 rounded-xl text-sm font-medium text-gray-500 border border-dashed border-gray-700">No Video Uploaded</div>
+                            <div className="h-40 flex items-center justify-center bg-[#0B6E4F]/50 rounded-xl text-sm font-medium text-yellow-400 border border-dashed border-yellow-500/30">No Video Uploaded</div>
                         )}
                     </div>
 
                     {/* Audio */}
-                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
-                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="bg-black/40 rounded-2xl p-6 border border-[#50C878]/20">
+                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-yellow-400 uppercase tracking-wider">
                             <Music size={16} className="text-[#0B6E4F]" /> Audio Material
                         </div>
                         {viewingClass.audio ? (
                             <audio src={viewingClass.audio} controls className="w-full h-10" />
                         ) : (
-                            <p className="text-sm text-gray-600 italic">No audio content available.</p>
+                            <p className="text-sm text-yellow-200 italic">No audio content available.</p>
                         )}
                     </div>
 
                     {/* Text */}
-                    <div className="bg-[#013220]/40 rounded-2xl p-6 border border-[#50C878]/20">
-                        <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="bg-black/40 rounded-2xl p-6 border border-[#50C878]/20">
+                        <div className="flex items-center gap-2 mb-4 text-sm font-bold text-yellow-400 uppercase tracking-wider">
                             <FileText size={16} className="text-blue-500" /> Text Content
                         </div>
                         <p className="text-base text-[#D1F2EB]/90 leading-relaxed whitespace-pre-wrap">{viewingClass.text || "No text content provided."}</p>
@@ -553,17 +553,17 @@ const AdminDashboard = () => {
 
                     {/* MCQs */}
                     <div>
-                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                         <div className="flex items-center gap-2 mb-4 text-sm font-bold text-yellow-400 uppercase tracking-wider">
                             <AlertTriangle size={16} className="text-orange-500" /> Assessment Data
                         </div>
                         <div className="space-y-4">
-                            {viewingClass.mcq.length === 0 ? <p className="text-sm text-gray-600 italic">No questions configured.</p> : 
+                            {viewingClass.mcq.length === 0 ? <p className="text-sm text-yellow-200 italic">No questions configured.</p> : 
                              viewingClass.mcq.map((q, i) => (
                                 <div key={i} className="p-4 bg-[#0B6E4F]/50 rounded-xl border border-[#50C878]/20">
-                                    <p className="text-sm font-bold text-[#D1F2EB] mb-3"><span className="text-gray-500 mr-2">Q{i+1}</span>{q.question}</p>
-                                    <div className="space-y-2 pl-3 border-l-2 border-gray-700">
+                                    <p className="text-sm font-bold text-[#D1F2EB] mb-3"><span className="text-yellow-400 mr-2">Q{i+1}</span>{q.question}</p>
+                                    <div className="space-y-2 pl-3 border-l-2 border-yellow-500/30">
                                         {q.options.map((opt, oid) => (
-                                            <p key={oid} className={`text-sm ${opt === q.answer ? "text-green-400 font-bold" : "text-gray-500"}`}>
+                                            <p key={oid} className={`text-sm ${opt === q.answer ? "text-green-400 font-bold" : "text-yellow-400"}`}>
                                                 {opt === q.answer ? "✓ " : "• "} {opt}
                                             </p>
                                         ))}
@@ -606,13 +606,13 @@ const AdminDashboard = () => {
                       <input 
                         type="password" 
                         placeholder="••••••••" 
-                        className="w-full bg-[#013220]/50 border border-gray-700 text-center text-3xl tracking-[0.5em] text-[#D1F2EB] rounded-2xl py-5 mb-8 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all placeholder:tracking-normal placeholder:text-base placeholder:text-gray-600" 
+                        className="w-full bg-black/50 border border-yellow-500/30 text-center text-3xl tracking-[0.5em] text-[#D1F2EB] rounded-2xl py-5 mb-8 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all placeholder:tracking-normal placeholder:text-base placeholder:text-yellow-100/40" 
                         autoFocus 
                         value={secretInput} 
                         onChange={e => setSecretInput(e.target.value)} 
                       />
                       <div className="flex gap-4">
-                          <button type="button" onClick={() => setShowSecretModal(false)} className="flex-1 py-4 rounded-xl border border-gray-700 text-[#D1F2EB]/70 hover:text-[#D1F2EB] hover:border-gray-500 transition font-bold text-base">Cancel</button>
+                          <button type="button" onClick={() => setShowSecretModal(false)} className="flex-1 py-4 rounded-xl border border-yellow-500/30 text-[#D1F2EB]/70 hover:text-[#D1F2EB] hover:border-gray-500 transition font-bold text-base">Cancel</button>
                           <button type="submit" className="flex-1 py-4 bg-red-600 hover:bg-red-500 text-[#D1F2EB] rounded-xl font-bold text-base shadow-lg shadow-red-600/20 transition">Confirm Transfer</button>
                       </div>
                   </form>

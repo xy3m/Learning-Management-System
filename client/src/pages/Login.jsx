@@ -45,7 +45,7 @@ const Login = () => {
   return (
     // FIX: Updated layout to 'min-h-screen' with 'pt-32' padding.
     // This ensures the card is centered but pushed down enough to clear the fixed Navbar.
-    <div className="min-h-screen w-full bg-[#013220] flex items-center justify-center pt-32 pb-20 px-6 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center pt-32 pb-20 px-6 relative overflow-hidden">
       <Toaster position="top-center" toastOptions={{ style: { background: '#1f2937', color: '#fff', border: '1px solid #374151' }}}/>
 
       {/* --- Background Effects --- */}
@@ -73,15 +73,15 @@ const Login = () => {
           
           {/* Email Input */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Email Address</label>
+            <label className="text-xs font-bold text-yellow-400 uppercase ml-1 tracking-wider">Email Address</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" />
+                <Mail className="h-5 w-5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" />
               </div>
               <input 
                 type="email" 
                 placeholder="name@example.com" 
-                className="w-full bg-[#18181b] border border-gray-800 text-[#D1F2EB] text-base rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                className="w-full bg-[#18181b] border border-yellow-500/20 text-[#D1F2EB] text-base rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
               />
@@ -90,15 +90,15 @@ const Login = () => {
 
           {/* Password Input */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-500 uppercase ml-1 tracking-wider">Password</label>
+            <label className="text-xs font-bold text-yellow-400 uppercase ml-1 tracking-wider">Password</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" />
+                <Lock className="h-5 w-5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" />
               </div>
               <input 
                 type="password" 
                 placeholder="••••••••" 
-                className="w-full bg-[#18181b] border border-gray-800 text-[#D1F2EB] text-base rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                className="w-full bg-[#18181b] border border-yellow-500/20 text-[#D1F2EB] text-base rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
               />
@@ -114,7 +114,7 @@ const Login = () => {
             className={`
               w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all
               ${isLoading 
-                ? 'bg-[#0B6E4F] text-[#D1F2EB]/70 cursor-not-allowed border border-gray-700' 
+                ? 'bg-[#0B6E4F] text-[#D1F2EB]/70 cursor-not-allowed border border-yellow-500/30' 
                 : 'bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] hover:from-[#50C878] hover:to-[#0B6E4F] text-[#D1F2EB] shadow-[#50C878]/25'
               }
             `}
@@ -135,7 +135,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center border-t border-[#50C878]/20 pt-6">
-          <p className="text-gray-500 text-sm">
+          <p className="text-yellow-400 text-sm">
             Don't have an account?{' '}
             <Link to="/register" className="text-[#50C878] hover:text-[#D1F2EB] font-bold hover:underline transition-all">
               Initialize Protocol

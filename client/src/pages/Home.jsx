@@ -38,7 +38,7 @@ const GlassCard = ({ children, className = "" }) => (
     transition={{ duration: 0.5, type: "spring" }}
     className={`
       relative overflow-hidden
-      bg-[#013220]/40 backdrop-blur-xl 
+      bg-black/40 backdrop-blur-xl 
       shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]
       rounded-2xl p-8 
       ${className}
@@ -119,7 +119,7 @@ const Home = () => {
   if (!user) {
     return (
       // FIX: Use 'fixed inset-0' to force background to cover the ENTIRE viewport absolutely
-      <div className="fixed inset-0 w-full h-full bg-[#013220] text-[#D1F2EB] overflow-hidden">
+      <div className="fixed inset-0 w-full h-full bg-[#0a0a0a] text-[#D1F2EB] overflow-hidden">
         <Toaster position="bottom-right" toastOptions={{ style: { background: '#1f2937', color: '#fff' }}}/>
         
         {/* Background Layer */}
@@ -167,7 +167,7 @@ const Home = () => {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-auto px-8 py-4 bg-[#013220] text-[#D1F2EB] rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 flex items-center justify-center gap-2 group"
+                    className="w-full sm:w-auto px-8 py-4 bg-[#0a0a0a] text-[#D1F2EB] rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 flex items-center justify-center gap-2 group"
                   >
                     <LayoutDashboard size={20} className="text-[#D1F2EB]/70 group-hover:text-[#D1F2EB] transition-colors"/>
                     Access Terminal
@@ -195,7 +195,7 @@ const Home = () => {
   // 2. Logged In View (Setup Form) - Also using Fixed Inset
   if (!user.bankAccountId && user.role !== 'lms-admin') {
     return (
-      <div className="fixed inset-0 w-full h-full bg-[#013220] flex items-center justify-center p-4 overflow-hidden">
+      <div className="fixed inset-0 w-full h-full bg-[#0a0a0a] flex items-center justify-center p-4 overflow-hidden">
          <Toaster position="top-center" />
          
          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
@@ -214,18 +214,18 @@ const Home = () => {
 
           <p className="text-[#D1F2EB]/90 mb-8 leading-relaxed pl-1">
             To participate in the ecosystem, you must initialize your banking node. 
-            <span className="block mt-2 text-xs text-gray-500 font-mono">ENCRYPTION: AES-256-GCM // SIMULATION MODE</span>
+            <span className="block mt-2 text-xs text-yellow-400 font-mono">ENCRYPTION: AES-256-GCM // SIMULATION MODE</span>
           </p>
           
           <form onSubmit={handleBankSetup} className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[#D1F2EB]/70 uppercase tracking-wider ml-1">Account Identifier</label>
               <div className="relative group">
-                <CreditCard className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" size={18} />
+                <CreditCard className="absolute left-4 top-3.5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" size={18} />
                 <input
                   type="text"
                   placeholder="e.g. 123-456-789"
-                  className="w-full bg-[#013220]/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                  className="w-full bg-black/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                   onChange={e => setBankData({...bankData, accountNumber: e.target.value})}
                   required
                 />
@@ -235,11 +235,11 @@ const Home = () => {
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[#D1F2EB]/70 uppercase tracking-wider ml-1">Secret PIN</label>
               <div className="relative group">
-                <span className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-[#50C878] font-mono text-sm">***</span>
+                <span className="absolute left-4 top-3.5 text-yellow-400 group-focus-within:text-[#50C878] font-mono text-sm">***</span>
                 <input
                   type="password"
                   placeholder="Secret PIN"
-                  className="w-full bg-[#013220]/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                  className="w-full bg-black/40 text-[#D1F2EB] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                   onChange={e => setBankData({...bankData, secret: e.target.value})}
                   required
                 />
@@ -258,7 +258,7 @@ const Home = () => {
           <div className="mt-8 pt-6 text-center">
              <button 
                 onClick={handleLogout} 
-                className="text-xs text-gray-500 hover:text-[#D1F2EB] transition-colors uppercase tracking-widest hover:underline"
+                className="text-xs text-yellow-400 hover:text-[#D1F2EB] transition-colors uppercase tracking-widest hover:underline"
               >
                Terminate Session
              </button>

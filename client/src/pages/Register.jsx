@@ -36,7 +36,7 @@ const Register = () => {
 
   return (
     // FIX: Used 'min-h-screen' with 'pt-32' to ensure card sits BELOW the Navbar
-    <div className="min-h-screen w-full bg-[#013220] flex items-center justify-center pt-32 pb-20 px-6 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center pt-32 pb-20 px-6 relative overflow-hidden">
       <Toaster position="top-center" toastOptions={{ style: { background: '#1f2937', color: '#fff', border: '1px solid #374151' }}}/>
 
       {/* --- Background Effects --- */}
@@ -66,12 +66,12 @@ const Register = () => {
           <div className="space-y-1">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" />
+                <User className="h-5 w-5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" />
               </div>
               <input 
                 type="text" 
                 placeholder="Full Name" 
-                className="w-full bg-[#18181b] border border-gray-800 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                className="w-full bg-[#18181b] border border-yellow-500/20 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 required
               />
@@ -82,12 +82,12 @@ const Register = () => {
           <div className="space-y-1">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" />
+                <Mail className="h-5 w-5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" />
               </div>
               <input 
                 type="email" 
                 placeholder="Email Address" 
-                className="w-full bg-[#18181b] border border-gray-800 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                className="w-full bg-[#18181b] border border-yellow-500/20 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
               />
@@ -98,12 +98,12 @@ const Register = () => {
           <div className="space-y-1">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-[#50C878] transition-colors" />
+                <Lock className="h-5 w-5 text-yellow-400 group-focus-within:text-[#50C878] transition-colors" />
               </div>
               <input 
                 type="password" 
                 placeholder="Password" 
-                className="w-full bg-[#18181b] border border-gray-800 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-gray-600"
+                className="w-full bg-[#18181b] border border-yellow-500/20 text-[#D1F2EB] text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-[#50C878] focus:ring-1 focus:ring-[#50C878] transition-all placeholder:text-yellow-100/40"
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
               />
@@ -119,7 +119,7 @@ const Register = () => {
             className={`
               w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all mt-4
               ${isLoading 
-                ? 'bg-[#0B6E4F] text-[#D1F2EB]/70 cursor-not-allowed border border-gray-700' 
+                ? 'bg-[#0B6E4F] text-[#D1F2EB]/70 cursor-not-allowed border border-yellow-500/30' 
                 : 'bg-gradient-to-r from-[#0B6E4F] to-[#0B6E4F] hover:from-[#50C878] hover:to-[#0B6E4F] text-[#D1F2EB] shadow-[#50C878]/25'
               }
             `}
@@ -140,7 +140,7 @@ const Register = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center border-t border-[#50C878]/20 pt-6">
-          <p className="text-gray-500 text-sm">
+          <p className="text-yellow-400 text-sm">
             Already have an account?{' '}
             <Link to="/login" className="text-[#50C878] hover:text-[#D1F2EB] font-bold hover:underline transition-all">
               Login
