@@ -46,6 +46,28 @@ lms-simulation/
     └── package.json  # Backend dependencies
 ```
 
+## 📸 Screenshots
+
+<details>
+<summary><b>Click to expand and view screenshots</b></summary>
+
+### 🎓 Learner Experience
+| Explore Courses | Course Player & Progress |
+| :---: | :---: |
+| ![Explore Courses](./screenshots/learner-explore.png) | ![Course Player](./screenshots/learner-player.png) |
+
+### 👨‍🏫 Instructor Experience
+| Instructor Dashboard | Create Course |
+| :---: | :---: |
+| ![Instructor Dashboard](./screenshots/instructor-dashboard.png) | ![Create Course](./screenshots/instructor-create.png) |
+
+### 🛡️ Administrator View
+| Admin Dashboard |
+| :---: |
+| ![Admin Dashboard](./screenshots/admin-dashboard.png) |
+
+</details>
+
 ## ⚙️ Installation & Setup
 
 ### Prerequisites
